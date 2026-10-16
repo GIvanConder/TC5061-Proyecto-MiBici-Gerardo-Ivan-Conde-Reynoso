@@ -6,3 +6,9 @@ ruff
 tqdm
 typer
 -e .
+pandas
+pyarrow
+scikit-learn
+mlflow
+matplotlib
+requests
