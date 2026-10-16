@@ -209,3 +209,6 @@ models/*.joblib
 
 # Secretos
 .env
+# Resultados generados por P3 (se registran como artefactos en MLflow)
+reports/p3/
+reports/figures/pca_p3_mibici_final.png
