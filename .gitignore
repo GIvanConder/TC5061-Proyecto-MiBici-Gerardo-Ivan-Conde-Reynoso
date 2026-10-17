@@ -1,5 +1,6 @@
-# Data
-/data/
+# Data (se ignora el contenido, pero el manifiesto sí se versiona)
+/data/*
+!/data/manifest.json
 
 # Mac OS-specific storage files
 .DS_Store

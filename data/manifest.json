@@ -1,0 +1,72 @@
+{
+  "generado": "2026-10-16T04:11:10.903274+00:00",
+  "archivos": {
+    "viajes_2025_01.csv": {
+      "url": "https://www.mibici.net/site/assets/files/97653/datos_abiertos_2025_01.csv",
+      "sha256": "90ee75701a69374926af0400d204f3280baed0e3c1a1f97d9e6c0b283757125a",
+      "registros": 380184
+    },
+    "viajes_2025_02.csv": {
+      "url": "https://www.mibici.net/site/assets/files/99879/datos_abiertos_2025_02.csv",
+      "sha256": "f52f13f59eb2f1517e05c72f0a3d3d70c5b0fa6b86626c7325e8ca3b15ff74f8",
+      "registros": 372529
+    },
+    "viajes_2025_03.csv": {
+      "url": "https://www.mibici.net/site/assets/files/101986/datos_abiertos_2025_03.csv",
+      "sha256": "e5aa1b5d197f294022d3f0ff1b55bf553fcbdb697b50d43deaddf8dca36fed64",
+      "registros": 405110
+    },
+    "viajes_2025_04.csv": {
+      "url": "https://www.mibici.net/site/assets/files/103813/datos_abiertos_2025_04.csv",
+      "sha256": "630e637d6611aadc67aad321edcd541361220473bddf8e34ecba46c0e29d7341",
+      "registros": 366193
+    },
+    "viajes_2025_05.csv": {
+      "url": "https://www.mibici.net/site/assets/files/105513/datos_abiertos_2025_05.csv",
+      "sha256": "e0a744412a1e840c1d24c24269565a123b35739c0bac494b9c0f53ba0a2c43c2",
+      "registros": 395891
+    },
+    "viajes_2025_06.csv": {
+      "url": "https://www.mibici.net/site/assets/files/107088/datos_abiertos_2025_06.csv",
+      "sha256": "063e3523db00c90899f08fb134c4c382667eb0e4d8b6358890d426409c6f4c9e",
+      "registros": 356611
+    },
+    "viajes_2025_07.csv": {
+      "url": "https://www.mibici.net/site/assets/files/108898/datos_abiertos_2025_07.csv",
+      "sha256": "a71a9e2a629ff91b021f57e302958e64fa545678d6373aaf0fed62dfc7bebd29",
+      "registros": 368186
+    },
+    "viajes_2025_08.csv": {
+      "url": "https://www.mibici.net/site/assets/files/111021/datos_abiertos_2025_08.csv",
+      "sha256": "382e62f3eb878e13faf4c93d031c8efcf765c392b3402d27b264613f9ff4a56d",
+      "registros": 374727
+    },
+    "viajes_2025_09.csv": {
+      "url": "https://www.mibici.net/site/assets/files/113216/datos_abiertos_2025_09.csv",
+      "sha256": "218bed1587a70ec5fc5e8589a04783532301f19c55acd3633fa219c96860e720",
+      "registros": 376789
+    },
+    "viajes_2025_10.csv": {
+      "url": "https://www.mibici.net/site/assets/files/115104/datos_abiertos_2025_10.csv",
+      "sha256": "505d9b8b59f65fa223f7889189b74b9fe167c9dda11c7e7053536a360c611370",
+      "registros": 420064
+    },
+    "viajes_2025_11.csv": {
+      "url": "https://www.mibici.net/site/assets/files/116773/datos_abiertos_2025_11.csv",
+      "sha256": "f5c4f1b0c0842339dfdfaac756607314bdf5b64d17cde58d754f5a5a2e1a5fbe",
+      "registros": 380328
+    },
+    "viajes_2025_12.csv": {
+      "url": "https://www.mibici.net/site/assets/files/118153/datos_abiertos_2025_12.csv",
+      "sha256": "b9fbb7386666ac3d452e3d3ef40ab443c39eef349cd9c97207230371e1d2d001",
+      "registros": 335420
+    },
+    "nomenclatura.csv": {
+      "url": "https://www.mibici.net/site/assets/files/1118/nomenclatura_2026_09.csv",
+      "sha256": "206e45fe633922b634d858142fa21e6fd9f4c421b6435c02980ef290cc2df90d",
+      "registros": 484
+    }
+  },
+  "data_version": "7aa5e436d887",
+  "total_viajes": 4532032
+}
