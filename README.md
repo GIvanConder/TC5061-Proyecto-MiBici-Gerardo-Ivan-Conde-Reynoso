@@ -1,4 +1,17 @@
 # TC5061-Proyecto-Equipo32
+Proyecto integrador de TC5061 (Operaciones de aprendizaje automático): propuesta de solución de ML
+sobre los datos abiertos de [MiBici](https://mibici.net/es/datos-abiertos/), el sistema de bicicleta
+pública del Área Metropolitana de Guadalajara. Datos: ene–dic 2025 (4,532,032 viajes, 484 estaciones).
+
+El proyecto responde tres preguntas de negocio:
+
+| # | Pregunta | Tipo de tarea | Usuario |
+|---|----------|---------------|---------|
+| P1 | ¿Cuántos viajes se iniciarán en una estación o zona en un periodo futuro? | Regresión | Operador del sistema (planeación de flota) |
+| P2 | ¿Una estación estará en riesgo de quedarse sin bicicletas o sin anclajes? | Clasificación | Equipo de rebalanceo |
+| P3 | ¿Qué grupos de estaciones comparten patrones de uso y dónde se ubican? | Clustering | Planeación urbana y expansión |
+
+El ML Canvas y el diagrama de arquitectura se encuentran en `references/`.
 
 <a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
@@ -141,7 +154,8 @@ La comparación utiliza Silhouette, Davies-Bouldin y Calinski-Harabasz. Para el 
 
 ### MLflow Tracking
 
-P3 utiliza el experimento `mibici-p3-clustering`.
+Todos los runs del proyecto se registran en el experimento único `mibici-equipo32`;
+la pregunta atendida se distingue mediante tags (`problema: P1/P2/P3`).
 
 Los runs tienen nombres descriptivos:
 
@@ -178,4 +192,17 @@ Los datos de MiBici, modelos serializados, base de datos de MLflow, artefactos d
 
 El código se desarrolla en ramas independientes y todo cambio hacia `main` debe incorporarse mediante Pull Request revisado por otro integrante del equipo.
 
+Convenciones: ramas `feat/`, `fix/`, `docs/` + descripción corta; mensajes de commit
+siguiendo [Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/). La rama
+`main` está protegida; cada integrante abre al menos un PR y revisa al menos uno.
+
 Para P3 se utiliza la rama `feature/p3-clustering`.
+
+## Equipo 32
+
+| Integrante | Rol |
+|------------|-----|
+| Rolando Calderón Carballo -  | Infraestructura: repo, ingesta reproducible, versionado de datos, configuración |
+| Johanna Camargo Medina | P1 — Regresión: demanda de viajes por estación |
+| Alejandro Cardona Esquivel | P2 — Clasificación: riesgo de disponibilidad por estación |
+| Gerardo Conde Reynoso | P3 — Clustering: patrones de uso de estaciones |
