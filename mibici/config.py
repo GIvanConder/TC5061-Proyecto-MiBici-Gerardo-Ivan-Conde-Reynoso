@@ -62,7 +62,7 @@ P3_MIN_HISTORY_DAYS = 30
 P3_MIN_DURATION_SECONDS = 60
 P3_MAX_DURATION_SECONDS = 86400
 
-P3_MLFLOW_EXPERIMENT = "mibici-p3-clustering"
+P3_MLFLOW_EXPERIMENT = "mibici-equipo32" #usar el mismo nombre de experimiento en todas las preguntas
 P3_MLFLOW_RUN_NAME = "p3_kmeans_final"
 P3_QUESTION = "Agrupar estaciones MiBici según sus patrones de uso y evaluar su estabilidad temporal."
 
