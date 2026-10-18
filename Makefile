@@ -61,7 +61,9 @@ create_environment:
 .PHONY: data
 data: requirements
 	$(PYTHON_INTERPRETER) mibici/dataset.py
-
+.PHONY: p2
+p2:
+   	$(PYTHON_INTERPRETER) -m mibici.modeling.p2_clasificacion
 
 #################################################################################
 # Self Documenting Commands                                                     #

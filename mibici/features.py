@@ -312,3 +312,133 @@ def p3_agregar_entropias(
     )
 
     return resultado
+
+
+# P2
+
+P2_FEATURES = [
+    "hora_dia",
+    "dia_semana",
+    "fin_semana",
+    "salidas_h0",
+    "llegadas_h0",
+    "neto_h0",
+    "neto_h1",
+    "neto_h2",
+    "neto_3h",
+    "capacidad",
+    "neto_3h_rel",
+    "neto_futuro_ayer",
+    "neto_futuro_semana",
+    "tasa_riesgo_hist",
+    "neto_futuro_medio_hist",
+]
+
+P2_LLAVES_HISTORICO = ["estacion", "hora_dia", "fin_semana"]
+
+
+def p2_construir_panel(viajes: pd.DataFrame, inicio: str, fin: str) -> pd.DataFrame:
+    salidas = (
+        viajes.assign(hora=viajes["inicio_viaje"].dt.floor("h"))
+        .groupby(["origen_id", "hora"])
+        .size()
+        .rename("salidas")
+    )
+    salidas.index.names = ["estacion", "hora"]
+
+    llegadas = (
+        viajes.assign(hora=viajes["fin_viaje"].dt.floor("h"))
+        .groupby(["destino_id", "hora"])
+        .size()
+        .rename("llegadas")
+    )
+    llegadas.index.names = ["estacion", "hora"]
+
+    estaciones = sorted(set(viajes["origen_id"]) | set(viajes["destino_id"]))
+    horas = pd.date_range(inicio, fin, freq="h", inclusive="left")
+    indice = pd.MultiIndex.from_product([estaciones, horas], names=["estacion", "hora"])
+
+    eventos = pd.concat([salidas, llegadas], axis=1)
+    panel = eventos.reindex(indice).fillna(0).astype("int32")
+    panel["neto"] = panel["llegadas"] - panel["salidas"]
+
+    primera_hora = eventos.reset_index().groupby("estacion")["hora"].min()
+    estacion = panel.index.get_level_values("estacion")
+    hora = panel.index.get_level_values("hora")
+    return panel.loc[hora >= estacion.map(primera_hora)]
+
+
+def p2_agregar_etiqueta(
+    panel: pd.DataFrame, horizonte: int, capacidad: pd.Series, fraccion: float
+) -> pd.DataFrame:
+    df = panel.copy()
+    neto = df.groupby(level="estacion")["neto"]
+    df["neto_futuro"] = sum(neto.shift(-k) for k in range(1, horizonte + 1))
+    df["capacidad"] = df.index.get_level_values("estacion").map(capacidad)
+
+    umbral = fraccion * df["capacidad"]
+    df["riesgo"] = (df["neto_futuro"].abs() >= umbral).astype("int8")
+    df["tipo_riesgo"] = np.select(
+        [df["neto_futuro"] <= -umbral, df["neto_futuro"] >= umbral],
+        ["sin_bicis", "sin_anclajes"],
+        default="normal",
+    )
+    return df.loc[df["neto_futuro"].notna() & (df["capacidad"] > 0)].copy()
+
+
+def p2_agregar_features(df: pd.DataFrame, horizonte: int) -> pd.DataFrame:
+    if not 1 <= horizonte < 24:
+        raise ValueError("El horizonte de P2 debe estar entre 1 y 23 horas.")
+    df = df.copy()
+    neto = df.groupby(level="estacion")["neto"]
+    hora = df.index.get_level_values("hora")
+
+    df["hora_dia"] = hora.hour
+    df["dia_semana"] = hora.dayofweek
+    df["fin_semana"] = (hora.dayofweek >= 5).astype("int8")
+
+    df["salidas_h0"] = df["salidas"]
+    df["llegadas_h0"] = df["llegadas"]
+    df["neto_h0"] = df["neto"]
+    df["neto_h1"] = neto.shift(1)
+    df["neto_h2"] = neto.shift(2)
+    df["neto_3h"] = df["neto_h0"] + df["neto_h1"] + df["neto_h2"]
+    df["neto_3h_rel"] = df["neto_3h"] / df["capacidad"]
+
+    df["neto_futuro_ayer"] = sum(neto.shift(24 - k) for k in range(1, horizonte + 1))
+    df["neto_futuro_semana"] = sum(neto.shift(168 - k) for k in range(1, horizonte + 1))
+    return df
+
+
+def p2_ajustar_historico(train: pd.DataFrame) -> pd.DataFrame:
+    return (
+        train.groupby(P2_LLAVES_HISTORICO)
+        .agg(
+            tasa_riesgo_hist=("riesgo", "mean"),
+            neto_futuro_medio_hist=("neto_futuro", "mean"),
+        )
+        .reset_index()
+    )
+
+
+def p2_aplicar_historico(df: pd.DataFrame, historico: pd.DataFrame) -> pd.DataFrame:
+    return (
+        df.reset_index()
+        .merge(historico, on=P2_LLAVES_HISTORICO, how="left")
+        .set_index(["estacion", "hora"])
+    )
+
+
+def p2_historico_pasado(train: pd.DataFrame) -> pd.DataFrame:
+    df = train.copy()
+    grupos = df.groupby(
+        [df.index.get_level_values("estacion"), df["hora_dia"], df["fin_semana"]]
+    )
+    previas = grupos.cumcount()
+    for origen, destino in (
+        ("riesgo", "tasa_riesgo_hist"),
+        ("neto_futuro", "neto_futuro_medio_hist"),
+    ):
+        suma_previa = grupos[origen].cumsum() - df[origen]
+        df[destino] = (suma_previa / previas).where(previas > 0)
+    return df
