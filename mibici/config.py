@@ -79,3 +79,25 @@ P3_AGGLO_LINKAGE = "ward"
 
 P3_MLFLOW_BASELINE_RUN_NAME = "p3_baseline_kmeans_k2"
 P3_MLFLOW_CANDIDATE_RUN_NAME = "p3_candidato_agglomerative_k4"
+
+# P2
+P2_TRAIN_START = "2025-01-01"  # TRAIN ene-sep
+P2_VAL_START = "2025-10-01"  # VAL oct
+P2_TEST_START = TEST_START  # TEST nov-dic
+P2_TEST_END = "2026-01-01"
+
+P2_HORIZONTE_HORAS = 2  # H: horas hacia adelante
+P2_FRACCION_CAPACIDAD = 0.4
+
+P2_MIN_DURATION_SECONDS = 60
+P2_MAX_DURATION_SECONDS = 86400
+
+P2_MLFLOW_EXPERIMENT = "mibici-equipo32"
+P2_MLFLOW_BASELINE_RUN_NAME = "p2_baseline_logreg"
+P2_MLFLOW_CANDIDATE_RUN_NAME = "p2_candidato_hgb"
+P2_QUESTION = (
+    "¿Una estación estará en riesgo de quedarse sin bicicletas o sin anclajes "
+    "en las próximas horas?"
+)
+
+P2_OUTPUT_DIR = REPORTS_DIR / "p2"
