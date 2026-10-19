@@ -314,7 +314,7 @@ def p3_agregar_entropias(
     return resultado
 
 
-# P2
+# P2: estaciones en riesgo de quedarse sin bicis o sin anclajes
 
 P2_FEATURES = [
     "hora_dia",
@@ -334,10 +334,17 @@ P2_FEATURES = [
     "neto_futuro_medio_hist",
 ]
 
+# El perfil histórico se saca por estación, hora del día y si es fin de semana o no
 P2_LLAVES_HISTORICO = ["estacion", "hora_dia", "fin_semana"]
 
 
 def p2_construir_panel(viajes: pd.DataFrame, inicio: str, fin: str) -> pd.DataFrame:
+    """Arma la tabla estación x hora con salidas, llegadas y neto (llegadas - salidas).
+
+    Las horas sin viajes también aparecen, con 0. Cada estación empieza en la hora de su
+    primer viaje; si no, una estación que abrió en marzo tendría dos meses de horas
+    "normales" que en realidad no existieron.
+    """
     salidas = (
         viajes.assign(hora=viajes["inicio_viaje"].dt.floor("h"))
         .groupby(["origen_id", "hora"])
@@ -371,6 +378,16 @@ def p2_construir_panel(viajes: pd.DataFrame, inicio: str, fin: str) -> pd.DataFr
 def p2_agregar_etiqueta(
     panel: pd.DataFrame, horizonte: int, capacidad: pd.Series, fraccion: float
 ) -> pd.DataFrame:
+    """Pone la etiqueta de riesgo, que es lo que queremos predecir.
+
+    Para la hora t sumamos el neto de t+1 a t+horizonte. Si en valor absoluto llega a
+    fraccion * capacidad, la estación está en riesgo: si el neto es negativo se puede
+    quedar sin bicis y si es positivo, sin anclajes. Es la única parte que mira hacia
+    adelante (de ahí el shift negativo); las features no deben hacerlo.
+
+    Se quitan las últimas horas, que no tienen futuro completo, y las estaciones con
+    capacidad 0 o que no vienen en el catálogo.
+    """
     df = panel.copy()
     neto = df.groupby(level="estacion")["neto"]
     df["neto_futuro"] = sum(neto.shift(-k) for k in range(1, horizonte + 1))
@@ -383,10 +400,18 @@ def p2_agregar_etiqueta(
         ["sin_bicis", "sin_anclajes"],
         default="normal",
     )
+    # fuera horas sin futuro completo y estaciones sin capacidad conocida
     return df.loc[df["neto_futuro"].notna() & (df["capacidad"] > 0)].copy()
 
 
 def p2_agregar_features(df: pd.DataFrame, horizonte: int) -> pd.DataFrame:
+    """Variables para predecir en la hora t usando solo lo que ya pasó.
+
+    Hora y día de la semana, movimientos de la hora actual y de las dos anteriores, el
+    neto de las últimas 3 h (también relativo a la capacidad) y cómo se comportó esa misma
+    ventana ayer y hace una semana. El horizonte tiene que ser menor a 24 h; si no, "la
+    misma ventana de ayer" ya caería en el futuro.
+    """
     if not 1 <= horizonte < 24:
         raise ValueError("El horizonte de P2 debe estar entre 1 y 23 horas.")
     df = df.copy()
@@ -405,12 +430,19 @@ def p2_agregar_features(df: pd.DataFrame, horizonte: int) -> pd.DataFrame:
     df["neto_3h"] = df["neto_h0"] + df["neto_h1"] + df["neto_h2"]
     df["neto_3h_rel"] = df["neto_3h"] / df["capacidad"]
 
+    # la misma ventana que queremos predecir, pero ayer y hace una semana
     df["neto_futuro_ayer"] = sum(neto.shift(24 - k) for k in range(1, horizonte + 1))
     df["neto_futuro_semana"] = sum(neto.shift(168 - k) for k in range(1, horizonte + 1))
     return df
 
 
 def p2_ajustar_historico(train: pd.DataFrame) -> pd.DataFrame:
+    """Perfil de cada estación por hora y tipo de día: qué tan seguido cae en riesgo y
+    cuál es su neto promedio.
+
+    Se calcula solo con TRAIN. Para validación y test se pega con p2_aplicar_historico, y
+    para las filas de TRAIN se usa p2_historico_pasado.
+    """
     return (
         train.groupby(P2_LLAVES_HISTORICO)
         .agg(
@@ -422,6 +454,7 @@ def p2_ajustar_historico(train: pd.DataFrame) -> pd.DataFrame:
 
 
 def p2_aplicar_historico(df: pd.DataFrame, historico: pd.DataFrame) -> pd.DataFrame:
+    """Pega el perfil histórico de TRAIN a validación o test."""
     return (
         df.reset_index()
         .merge(historico, on=P2_LLAVES_HISTORICO, how="left")
@@ -430,10 +463,15 @@ def p2_aplicar_historico(df: pd.DataFrame, historico: pd.DataFrame) -> pd.DataFr
 
 
 def p2_historico_pasado(train: pd.DataFrame) -> pd.DataFrame:
+    """El mismo perfil histórico, pero calculado para las filas de TRAIN.
+
+    Si a cada fila de TRAIN le pegáramos el promedio de todo TRAIN, estaría viendo su
+    propia etiqueta y además meses que todavía no pasan. Aquí cada fila solo promedia los
+    días anteriores (misma estación, hora y tipo de día). Necesita el df ordenado por
+    estación y hora, que es como sale del panel.
+    """
     df = train.copy()
-    grupos = df.groupby(
-        [df.index.get_level_values("estacion"), df["hora_dia"], df["fin_semana"]]
-    )
+    grupos = df.groupby([df.index.get_level_values("estacion"), df["hora_dia"], df["fin_semana"]])
     previas = grupos.cumcount()
     for origen, destino in (
         ("riesgo", "tasa_riesgo_hist"),
