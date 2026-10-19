@@ -48,6 +48,10 @@ COLUMNAS_VIAJES = {
 }
 
 
+# Columnas con datos personales que se eliminan en la ingesta.
+COLUMNAS_PERSONALES = ["usuario_id", "genero", "anio_nacimiento"]
+
+
 def _normalizar_nombre(col: str) -> str:
     """Quita acentos, pasa a minúsculas y deja solo [a-z0-9_]."""
     col = unicodedata.normalize("NFKD", col).encode("ascii", "ignore").decode()
@@ -92,7 +96,10 @@ def normalizar_viajes(df: pd.DataFrame, origen: str) -> pd.DataFrame:
     df["inicio_viaje"] = pd.to_datetime(df["inicio_viaje"], errors="coerce")
     df["fin_viaje"] = pd.to_datetime(df["fin_viaje"], errors="coerce")
     df["mes_archivo"] = origen
-    return df
+    # Minimización de datos personales (aviso de privacidad de MiBici/AMIM): el
+    # pseudónimo de usuario, el género y el año de nacimiento no se usan en P1-P3,
+    # así que no se guardan en los Parquet procesados.
+    return df.drop(columns=[c for c in COLUMNAS_PERSONALES if c in df.columns])
 
 
 @app.command()
