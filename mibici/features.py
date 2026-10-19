@@ -442,3 +442,147 @@ def p2_historico_pasado(train: pd.DataFrame) -> pd.DataFrame:
         suma_previa = grupos[origen].cumsum() - df[origen]
         df[destino] = (suma_previa / previas).where(previas > 0)
     return df
+
+# P1
+
+P1_FEATURES = [
+    "dow_sin",
+    "dow_cos",
+    "mes_sin",
+    "mes_cos",
+    "fin_semana_objetivo",
+    "salidas_d0",
+    "llegadas_d0",
+    "neto_d0",
+    "salidas_lag7",
+    "salidas_lag14",
+    "salidas_lag28",
+    "media_salidas_3d",
+    "media_salidas_7d",
+    "media_salidas_28d",
+    "media_llegadas_7d",
+]
+
+
+def p1_construir_panel_diario(
+    viajes: pd.DataFrame,
+    inicio: str,
+    fin: str,
+) -> pd.DataFrame:
+    salidas = (
+        viajes.assign(fecha=viajes["inicio_viaje"].dt.floor("D"))
+        .groupby(["origen_id", "fecha"])
+        .size()
+        .rename("salidas")
+    )
+    salidas.index.names = ["estacion", "fecha"]
+
+    llegadas = (
+        viajes.assign(fecha=viajes["fin_viaje"].dt.floor("D"))
+        .groupby(["destino_id", "fecha"])
+        .size()
+        .rename("llegadas")
+    )
+    llegadas.index.names = ["estacion", "fecha"]
+
+    estaciones = sorted(
+        set(viajes["origen_id"]) | set(viajes["destino_id"])
+    )
+
+    dias = pd.date_range(
+        inicio,
+        fin,
+        freq="D",
+        inclusive="left",
+    )
+
+    indice = pd.MultiIndex.from_product(
+        [estaciones, dias],
+        names=["estacion", "fecha"],
+    )
+
+    eventos = pd.concat(
+        [salidas, llegadas],
+        axis=1,
+    )
+
+    panel = (
+        eventos.reindex(indice)
+        .fillna(0)
+        .astype("int32")
+    )
+
+    panel["neto"] = (
+        panel["llegadas"]
+        - panel["salidas"]
+    )
+
+    primera_fecha = (
+        eventos.reset_index()
+        .groupby("estacion")["fecha"]
+        .min()
+    )
+
+    estacion = panel.index.get_level_values("estacion")
+    fecha = panel.index.get_level_values("fecha")
+
+    return panel.loc[
+        fecha >= estacion.map(primera_fecha)
+    ]
+
+
+def p1_agregar_features_y_target(
+    panel: pd.DataFrame,
+) -> pd.DataFrame:
+    df = panel.copy()
+
+    grupos = df.groupby(level="estacion")
+
+    fecha = df.index.get_level_values("fecha")
+    fecha_objetivo = fecha + pd.Timedelta(days=1)
+
+    df["fecha_objetivo"] = fecha_objetivo
+    df["target_salidas"] = grupos["salidas"].shift(-1)
+
+    dow = fecha_objetivo.dayofweek
+    mes = fecha_objetivo.month
+
+    df["dow_sin"] = np.sin(2 * np.pi * dow / 7)
+    df["dow_cos"] = np.cos(2 * np.pi * dow / 7)
+
+    df["mes_sin"] = np.sin(
+        2 * np.pi * (mes - 1) / 12
+    )
+    df["mes_cos"] = np.cos(
+        2 * np.pi * (mes - 1) / 12
+    )
+
+    df["fin_semana_objetivo"] = (
+        dow >= 5
+    ).astype("int8")
+
+    df["salidas_d0"] = df["salidas"]
+    df["llegadas_d0"] = df["llegadas"]
+    df["neto_d0"] = df["neto"]
+
+    df["salidas_lag7"] = grupos["salidas"].shift(7)
+    df["salidas_lag14"] = grupos["salidas"].shift(14)
+    df["salidas_lag28"] = grupos["salidas"].shift(28)
+
+    df["media_salidas_3d"] = grupos["salidas"].transform(
+        lambda s: s.rolling(3, min_periods=3).mean()
+    )
+
+    df["media_salidas_7d"] = grupos["salidas"].transform(
+        lambda s: s.rolling(7, min_periods=7).mean()
+    )
+
+    df["media_salidas_28d"] = grupos["salidas"].transform(
+        lambda s: s.rolling(28, min_periods=28).mean()
+    )
+
+    df["media_llegadas_7d"] = grupos["llegadas"].transform(
+        lambda s: s.rolling(7, min_periods=7).mean()
+    )
+
+    return df
