@@ -532,3 +532,97 @@ def p2_historico_pasado(train: pd.DataFrame) -> pd.DataFrame:
         df[destino] = (suma_previa / previas).where(previas > 0)
     return df
 
+
+# P1 (Johanna Camargo): viajes iniciados por estación y día, horizonte 1 día
+
+P1_FEATURES = [
+    "dia_semana",
+    "fin_semana",
+    "feriado",
+    "lag_1",
+    "lag_2",
+    "lag_7",
+    "lag_14",
+    "media_7d",
+    "media_28d",
+    "media_mismo_dia_4sem",
+    "dias_activa",
+    "capacidad",
+]
+
+
+class LeakageError(ValueError):
+    """Se intentó construir una variable con información posterior a la predicción."""
+
+
+def p1_construir_panel_diario(viajes: pd.DataFrame, inicio: str, fin: str) -> pd.DataFrame:
+    """Panel diario estación × fecha con la variable objetivo ``viajes``.
+
+    ``viajes`` cuenta los viajes iniciados (salidas) en la estación ese día
+    calendario. Los días sin salidas se rellenan con 0 y cada estación entra al
+    panel a partir de su primera salida, de modo que el panel es contiguo y un
+    ``shift(k)`` por estación equivale exactamente a "hace k días".
+    (P1 – Johanna Camargo.)
+    """
+    conteo = (
+        viajes.assign(fecha=viajes["inicio_viaje"].dt.normalize())
+        .groupby(["origen_id", "fecha"])
+        .size()
+        .rename("viajes")
+    )
+    conteo.index.names = ["estacion", "fecha"]
+
+    estaciones = sorted(conteo.index.get_level_values("estacion").unique())
+    dias = pd.date_range(inicio, fin, freq="D", inclusive="left")
+    indice = pd.MultiIndex.from_product([estaciones, dias], names=["estacion", "fecha"])
+    panel = conteo.reindex(indice, fill_value=0).astype("int32").to_frame()
+
+    primera = conteo.reset_index().groupby("estacion")["fecha"].min()
+    estacion = panel.index.get_level_values("estacion")
+    fecha = panel.index.get_level_values("fecha")
+    return panel.loc[fecha >= estacion.map(primera)]
+
+
+def p1_agregar_features(
+    panel: pd.DataFrame,
+    capacidad: pd.Series,
+    feriados: list[str],
+    lags: list[int],
+    ventanas: list[int],
+    horizonte: int = 1,
+) -> pd.DataFrame:
+    """Variables de P1 conocidas al cierre del día anterior al que se predice.
+
+    * Calendario del día objetivo (conocido de antemano): ``dia_semana``,
+      ``fin_semana`` y ``feriado``.
+    * Rezagos de la demanda de la estación (``lag_k`` = viajes de hace k días)
+      y medias móviles de 7 y 28 días que terminan en D-1 (``shift(1)``).
+    * ``media_mismo_dia_4sem``: promedio de las 4 semanas previas en el mismo
+      día de la semana (estacionalidad semanal).
+    * ``dias_activa`` (antigüedad de la estación) y ``capacidad`` instalada.
+
+    Lanza ``LeakageError`` si algún rezago es menor que el horizonte, porque
+    ese dato aún no existiría cuando se emite la predicción.
+    (P1 – Johanna Camargo.)
+    """
+    if min(lags) < horizonte:
+        raise LeakageError(f"Rezago {min(lags)} < horizonte {horizonte}: fuga de información.")
+
+    df = panel.copy()
+    fecha = df.index.get_level_values("fecha")
+    viajes = df.groupby(level="estacion")["viajes"]
+
+    df["dia_semana"] = fecha.dayofweek.astype("int8")
+    df["fin_semana"] = (fecha.dayofweek >= 5).astype("int8")
+    df["feriado"] = fecha.isin(pd.to_datetime(feriados)).astype("int8")
+
+    for k in lags:
+        df[f"lag_{k}"] = viajes.shift(k)
+    for w in ventanas:
+        df[f"media_{w}d"] = viajes.transform(
+            lambda s, w=w: s.shift(horizonte).rolling(w, min_periods=w).mean()
+        )
+    df["media_mismo_dia_4sem"] = sum(viajes.shift(7 * k) for k in range(1, 5)) / 4
+    df["dias_activa"] = df.groupby(level="estacion").cumcount()
+    df["capacidad"] = df.index.get_level_values("estacion").map(capacidad).fillna(0)
+    return df
