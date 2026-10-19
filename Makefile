@@ -82,7 +82,3 @@ export PRINT_HELP_PYSCRIPT
 
 help:
 	@$(PYTHON_INTERPRETER) -c "${PRINT_HELP_PYSCRIPT}" < $(MAKEFILE_LIST)
-
-.PHONY: p1
-p1:
-	$(PYTHON_INTERPRETER) -m mibici.modeling.p1_regresion
