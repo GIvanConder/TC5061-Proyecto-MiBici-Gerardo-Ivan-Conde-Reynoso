@@ -109,6 +109,34 @@ El manifiesto incluye una `data_version` calculada a partir de los archivos de e
 
 Los datos crudos, intermedios y procesados no se versionan en Git.
 
+## P1 — Regresión: demanda de viajes por estación
+
+Predice el número de viajes iniciados por estación por día (horizonte: 1 día).
+Partición temporal: entrenamiento desde enero, validación desde septiembre y
+prueba del 20 de octubre al 31 de diciembre de 2025.
+
+```bash
+python -m mibici.modeling.p1_regresion
+```
+
+Registra en MLflow los runs `p1_baseline_poisson`, `p1_candidato_hgb` y
+`p1_modelo_final`, con métricas de error en el conjunto de prueba.
+
+## P2 — Clasificación: riesgo de disponibilidad
+
+Clasifica si una estación quedará en riesgo de quedarse sin bicicletas o sin
+anclajes en las próximas 2 horas. El riesgo se aproxima comparando el flujo neto
+contra el 40% de la capacidad de la estación (los datos abiertos no incluyen
+inventario). Partición temporal: entrenamiento enero–septiembre, validación
+octubre, prueba noviembre–diciembre de 2025.
+
+```bash
+python -m mibici.modeling.p2_clasificacion
+```
+
+Registra en MLflow los runs `p2_baseline_logreg` y `p2_candidato_hgb`; por el
+desbalance de clases, las métricas principales son `test_f1` y `test_recall`.
+
 ## P3 — Clustering de estaciones
 
 La pregunta P3 busca agrupar estaciones de MiBici de acuerdo con sus patrones de uso y evaluar si esos perfiles se mantienen estables en el tiempo.
