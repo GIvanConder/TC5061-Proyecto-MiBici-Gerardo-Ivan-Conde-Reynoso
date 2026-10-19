@@ -1,3 +1,21 @@
+"""Feature engineering reutilizable del proyecto MiBici (Equipo 32).
+
+Este módulo concentra TODA la construcción de variables; los pipelines de
+``mibici/modeling`` solo importan estas funciones, de modo que el mismo código
+se usa en entrenamiento y en predicción.
+
+Organización por pregunta y autoría:
+
+* ``p1_*`` – P1, regresión de viajes diarios por estación (Johanna Camargo).
+* ``p2_*`` – P2, clasificación de riesgo de vaciado/llenado (Manuel Cardona).
+* ``p3_*`` – P3, clustering de estaciones por patrón de uso (Gerardo Conde).
+
+Regla común (prevención de fuga): ninguna variable de entrada usa información
+posterior al momento en que se emitiría la predicción. Las únicas funciones que
+miran al futuro son las que construyen la *etiqueta* (p. ej.
+``p2_agregar_etiqueta``), nunca las que construyen variables.
+"""
+
 import numpy as np
 import pandas as pd
 
@@ -22,6 +40,13 @@ def p3_filtrar_viajes(
     min_duration_seconds: int = 60,
     max_duration_seconds: int = 86400,
 ) -> pd.DataFrame:
+    """Descarta viajes con duración fuera de ``[min, max]`` segundos.
+
+    Viajes de menos de 60 s suelen ser desanclajes fallidos y los de más de
+    24 h, bicicletas no ancladas o registros anómalos; ninguno representa uso
+    real de la estación. Devuelve una copia filtrada de ``viajes``.
+    (P3 – Gerardo Conde.)
+    """
     df = viajes.copy()
 
     duracion = (
@@ -40,6 +65,22 @@ def p3_construir_features(
     max_inactivity_days: int = 60,
     min_history_days: int = 30,
 ):
+    """Construye el perfil de uso de cada estación elegible para un periodo.
+
+    1. Calcula la cobertura de cada estación (primera/última actividad, días
+       activos y movimientos) a partir de salidas y llegadas.
+    2. Marca como elegibles las estaciones con al menos ``min_history_days``
+       de historial y menos de ``max_inactivity_days`` sin actividad al cierre
+       ``fin_periodo`` (criterio dinámico, sin lista fija de estaciones).
+    3. Para las elegibles calcula las 12 variables de ``P3_MODEL_FEATURES``:
+       intensidad (``salidas_dia``, ``llegadas_dia``, normalizadas por días de
+       exposición), ``balance_relativo``, ``share_fin_semana`` y la proporción
+       de salidas y llegadas en los bloques mañana (05-10 h), mediodía
+       (11-15 h), tarde (16-20 h) y noche (21-04 h).
+
+    Solo usa los viajes recibidos, por lo que se llama por separado para TRAIN
+    y TEST. Devuelve ``(features, cobertura)``. (P3 – Gerardo Conde.)
+    """
     salidas_ev = viajes[
         ["inicio_viaje", "origen_id"]
     ].rename(
@@ -266,6 +307,12 @@ def p3_construir_features(
 def p3_entropia_normalizada(
     serie: pd.Series,
 ) -> float:
+    """Entropía de Shannon de una serie categórica, normalizada a ``[0, 1]``.
+
+    Divide la entropía entre ``log(n_categorias)``; devuelve 0 si hay una sola
+    categoría. Se usa para medir qué tan diversos son los destinos (u orígenes)
+    de una estación. (P3 – Gerardo Conde.)
+    """
     p = serie.value_counts(normalize=True)
 
     if len(p) <= 1:
@@ -280,6 +327,11 @@ def p3_agregar_entropias(
     features: pd.DataFrame,
     viajes: pd.DataFrame,
 ) -> pd.DataFrame:
+    """Agrega ``entropia_destinos`` y ``entropia_origenes`` a cada estación.
+
+    Son variables descriptivas de conectividad: se usan para interpretar los
+    perfiles, no como entrada del modelo final. (P3 – Gerardo Conde.)
+    """
     resultado = features.copy()
     ids = set(resultado.index)
 
@@ -338,6 +390,13 @@ P2_LLAVES_HISTORICO = ["estacion", "hora_dia", "fin_semana"]
 
 
 def p2_construir_panel(viajes: pd.DataFrame, inicio: str, fin: str) -> pd.DataFrame:
+    """Panel horario estación × hora con ``salidas``, ``llegadas`` y ``neto``.
+
+    Las salidas se asignan a la hora de inicio del viaje y las llegadas a la
+    hora de fin. Rellena con 0 las horas sin movimientos y conserva cada
+    estación solo a partir de su primera actividad, para no inventar historia
+    a estaciones nuevas. (P2 – Manuel Cardona.)
+    """
     salidas = (
         viajes.assign(hora=viajes["inicio_viaje"].dt.floor("h"))
         .groupby(["origen_id", "hora"])
@@ -371,6 +430,14 @@ def p2_construir_panel(viajes: pd.DataFrame, inicio: str, fin: str) -> pd.DataFr
 def p2_agregar_etiqueta(
     panel: pd.DataFrame, horizonte: int, capacidad: pd.Series, fraccion: float
 ) -> pd.DataFrame:
+    """Construye la etiqueta de riesgo de P2 (mira al futuro a propósito).
+
+    ``neto_futuro`` es la suma del flujo neto en ``t+1 … t+H``. Hay riesgo
+    (``riesgo = 1``) si ``|neto_futuro| >= fraccion × capacidad``; el signo
+    indica el tipo (``sin_bicis`` si salen más de las que llegan,
+    ``sin_anclajes`` en el caso contrario). Se descartan filas sin ventana
+    futura completa o con capacidad 0. (P2 – Manuel Cardona.)
+    """
     df = panel.copy()
     neto = df.groupby(level="estacion")["neto"]
     df["neto_futuro"] = sum(neto.shift(-k) for k in range(1, horizonte + 1))
@@ -387,6 +454,15 @@ def p2_agregar_etiqueta(
 
 
 def p2_agregar_features(df: pd.DataFrame, horizonte: int) -> pd.DataFrame:
+    """Variables de entrada de P2 disponibles en la hora de decisión ``t``.
+
+    Calendario (hora, día de la semana, fin de semana), flujos de la hora
+    actual y de las dos anteriores, neto acumulado de 3 h (absoluto y relativo
+    a la capacidad) y el neto que hubo en la misma ventana futura ayer
+    (``shift(24-k)``) y hace una semana (``shift(168-k)``). Como ``H < 24``,
+    todos los rezagos son anteriores a ``t``; por eso se valida el horizonte.
+    (P2 – Manuel Cardona.)
+    """
     if not 1 <= horizonte < 24:
         raise ValueError("El horizonte de P2 debe estar entre 1 y 23 horas.")
     df = df.copy()
@@ -411,6 +487,11 @@ def p2_agregar_features(df: pd.DataFrame, horizonte: int) -> pd.DataFrame:
 
 
 def p2_ajustar_historico(train: pd.DataFrame) -> pd.DataFrame:
+    """Tasa histórica de riesgo y neto futuro medio por estación × hora × fin de semana.
+
+    Se ajusta SOLO con TRAIN y luego se aplica a validación y prueba con
+    ``p2_aplicar_historico``. (P2 – Manuel Cardona.)
+    """
     return (
         train.groupby(P2_LLAVES_HISTORICO)
         .agg(
@@ -422,6 +503,7 @@ def p2_ajustar_historico(train: pd.DataFrame) -> pd.DataFrame:
 
 
 def p2_aplicar_historico(df: pd.DataFrame, historico: pd.DataFrame) -> pd.DataFrame:
+    """Une a ``df`` el histórico ajustado en TRAIN (sin recalcularlo). (P2 – Manuel Cardona.)"""
     return (
         df.reset_index()
         .merge(historico, on=P2_LLAVES_HISTORICO, how="left")
@@ -430,6 +512,13 @@ def p2_aplicar_historico(df: pd.DataFrame, historico: pd.DataFrame) -> pd.DataFr
 
 
 def p2_historico_pasado(train: pd.DataFrame) -> pd.DataFrame:
+    """Versión sin fuga del histórico dentro de TRAIN.
+
+    Para cada fila usa solo las observaciones anteriores del mismo grupo
+    (estación, hora del día, fin de semana), excluyendo la fila actual. Como
+    las filas previas del grupo están al menos 24 h antes y ``H < 24``, sus
+    etiquetas ya se conocían en ``t``. (P2 – Manuel Cardona.)
+    """
     df = train.copy()
     grupos = df.groupby(
         [df.index.get_level_values("estacion"), df["hora_dia"], df["fin_semana"]]
@@ -442,3 +531,4 @@ def p2_historico_pasado(train: pd.DataFrame) -> pd.DataFrame:
         suma_previa = grupos[origen].cumsum() - df[origen]
         df[destino] = (suma_previa / previas).where(previas > 0)
     return df
+
