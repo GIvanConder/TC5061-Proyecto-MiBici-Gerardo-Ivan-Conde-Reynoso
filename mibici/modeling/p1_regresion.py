@@ -27,20 +27,20 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-import matplotlib.pyplot as plt  # noqa: E402
-import mlflow  # noqa: E402
-import numpy as np  # noqa: E402
-import pandas as pd  # noqa: E402
-from sklearn.compose import ColumnTransformer  # noqa: E402
-from sklearn.ensemble import HistGradientBoostingRegressor  # noqa: E402
-from sklearn.inspection import permutation_importance  # noqa: E402
-from sklearn.linear_model import PoissonRegressor  # noqa: E402
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score  # noqa: E402
-from sklearn.pipeline import Pipeline  # noqa: E402
-from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler  # noqa: E402
-import typer  # noqa: E402
+import matplotlib.pyplot as plt
+import mlflow
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.inspection import permutation_importance
+from sklearn.linear_model import PoissonRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
+import typer
 
-from mibici.config import (  # noqa: E402
+from mibici.config import (
     ESTACIONES_PARQUET,
     MANIFEST_PATH,
     P1_BASELINE_LAG_DIAS,
@@ -67,7 +67,7 @@ from mibici.config import (  # noqa: E402
     TEAM_ID,
     VIAJES_PARQUET,
 )
-from mibici.features import (  # noqa: E402
+from mibici.features import (
     P1_FEATURES,
     p1_agregar_features,
     p1_construir_panel_diario,

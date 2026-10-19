@@ -7,16 +7,16 @@ de hashes. Ejecutable sin pasos manuales:
     python -m mibici.dataset
 """
 
+from datetime import datetime, timezone
 import hashlib
 import json
-import unicodedata
-from datetime import datetime, timezone
 from pathlib import Path
+import unicodedata
 
+from loguru import logger
 import pandas as pd
 import requests
 import typer
-from loguru import logger
 
 from mibici.config import (
     ESTACIONES_PARQUET,
