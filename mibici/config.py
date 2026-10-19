@@ -101,3 +101,25 @@ P2_QUESTION = (
 )
 
 P2_OUTPUT_DIR = REPORTS_DIR / "p2"
+
+# P1
+P1_TRAIN_START = "2025-01-01"
+P1_VAL_START = "2025-09-01"
+P1_TEST_START = "2025-10-20"
+P1_TEST_END = "2026-01-01"
+
+P1_HORIZONTE_DIAS = 1
+
+P1_MIN_DURATION_SECONDS = 60
+P1_MAX_DURATION_SECONDS = 86400
+
+P1_MLFLOW_EXPERIMENT = "mibici-equipo32"
+P1_MLFLOW_BASELINE_RUN_NAME = "p1_baseline_poisson"
+P1_MLFLOW_CANDIDATE_RUN_NAME = "p1_candidato_hgb"
+P1_MLFLOW_FINAL_RUN_NAME = "p1_modelo_final"
+
+P1_QUESTION = (
+    "¿Cuántos viajes se iniciarán en una estación o zona en un periodo futuro?"
+)
+
+P1_OUTPUT_DIR = REPORTS_DIR / "p1"

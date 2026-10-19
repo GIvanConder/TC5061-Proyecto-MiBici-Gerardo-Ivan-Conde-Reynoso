@@ -63,7 +63,7 @@ data: requirements
 	$(PYTHON_INTERPRETER) mibici/dataset.py
 .PHONY: p2
 p2:
-   	$(PYTHON_INTERPRETER) -m mibici.modeling.p2_clasificacion
+	$(PYTHON_INTERPRETER) -m mibici.modeling.p2_clasificacion
 
 #################################################################################
 # Self Documenting Commands                                                     #
@@ -82,3 +82,7 @@ export PRINT_HELP_PYSCRIPT
 
 help:
 	@$(PYTHON_INTERPRETER) -c "${PRINT_HELP_PYSCRIPT}" < $(MAKEFILE_LIST)
+
+.PHONY: p1
+p1:
+	$(PYTHON_INTERPRETER) -m mibici.modeling.p1_regresion
