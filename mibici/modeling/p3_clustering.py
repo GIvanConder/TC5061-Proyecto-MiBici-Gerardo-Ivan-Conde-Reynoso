@@ -57,6 +57,7 @@ from mibici.config import (
     P3_TRAIN_START,
     PROJ_ROOT,
     SEED,
+    TEAM_ID,
     VIAJES_PARQUET,
 )
 from mibici.features import (
@@ -828,6 +829,8 @@ def main(
 
         mlflow.set_tags(
             {
+                "equipo": TEAM_ID,
+                "mlflow.user": TEAM_ID,
                 "problema": "P3",
                 "tipo": "clustering",
                 "etapa": "baseline",
@@ -862,6 +865,8 @@ def main(
 
         mlflow.set_tags(
             {
+                "equipo": TEAM_ID,
+                "mlflow.user": TEAM_ID,
                 "problema": "P3",
                 "tipo": "clustering",
                 "etapa": "candidato",
@@ -905,6 +910,8 @@ def main(
 
         mlflow.set_tags(
             {
+                "equipo": TEAM_ID,
+                "mlflow.user": TEAM_ID,
                 "problema": "P3",
                 "tipo": "clustering",
                 "estado": "modelo_final",

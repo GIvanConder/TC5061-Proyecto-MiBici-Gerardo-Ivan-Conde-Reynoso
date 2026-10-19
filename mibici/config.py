@@ -101,3 +101,47 @@ P2_QUESTION = (
 )
 
 P2_OUTPUT_DIR = REPORTS_DIR / "p2"
+
+# ---------- Equipo (etiqueta común en todos los runs de MLflow) ----------
+TEAM_ID = "equipo32"
+
+# ---------- P1: regresión de viajes diarios por estación (Johanna Camargo) ----------
+# Granularidad: estación × día. Horizonte: el día siguiente (la predicción
+# del día D se emite al cierre de D-1), por lo que todos los rezagos son >= 1 día.
+P1_TRAIN_START = "2025-01-01"  # TRAIN ene-sep
+P1_VAL_START = "2025-10-01"  # VAL oct (selección y comparación de modelos)
+P1_TEST_START = TEST_START  # TEST nov-dic (evaluación final, sin tocar)
+P1_TEST_END = "2026-01-01"
+
+P1_HORIZONTE_DIAS = 1
+P1_LAGS_DIAS = [1, 2, 7, 14]
+P1_VENTANAS_MEDIA_DIAS = [7, 28]
+P1_BASELINE_LAG_DIAS = 7  # ingenuo estacional: mismo día de la semana anterior
+
+P1_MIN_DURATION_SECONDS = 60
+P1_MAX_DURATION_SECONDS = 86400
+
+# Días de descanso obligatorio (art. 74 LFT) y Jueves/Viernes Santo de 2025.
+P1_FERIADOS = [
+    "2025-01-01", "2025-02-03", "2025-03-17", "2025-04-17", "2025-04-18",
+    "2025-05-01", "2025-09-16", "2025-11-17", "2025-12-25",
+]  # fmt: skip
+
+P1_LINEAL_ALPHA = 1e-3
+P1_HGB_PARAMS = {
+    "loss": "poisson",
+    "learning_rate": 0.06,
+    "max_iter": 400,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 50,
+    "l2_regularization": 1.0,
+    "early_stopping": False,
+}
+
+P1_MLFLOW_EXPERIMENT = "mibici-equipo32"
+P1_MLFLOW_BASELINE_RUN_NAME = "p1_baseline_naive_semanal"
+P1_MLFLOW_LINEAL_RUN_NAME = "p1_candidato_poisson_lineal"
+P1_MLFLOW_CANDIDATE_RUN_NAME = "p1_candidato_hgb_poisson"
+P1_QUESTION = "¿Cuántos viajes se iniciarán en cada estación el día siguiente?"
+
+P1_OUTPUT_DIR = REPORTS_DIR / "p1"

@@ -64,6 +64,9 @@ Entrega de la semana 5 con datos de MiBici
     │
     ├── modeling                
     │   ├── __init__.py 
+    │   ├── p1_regresion.py     <- P1: viajes diarios por estación (baseline + 2 candidatos, MLflow)
+    │   ├── p2_clasificacion.py <- P2: riesgo de quedarse sin bicis/anclajes (MLflow)
+    │   ├── p3_clustering.py    <- P3: clustering de estaciones por patrón de uso (MLflow)
     │   ├── predict.py          <- Code to run model inference with trained models          
     │   └── train.py            <- Code to train models
     │
@@ -78,6 +81,7 @@ Entrega de la semana 5 con datos de MiBici
 El proyecto utiliza una estructura basada en Cookiecutter Data Science. La lógica final se mantiene dentro del paquete `mibici`; los notebooks se reservan para exploración.
 
 El entorno fue probado con Python 3.14.4. Las dependencias directas se encuentran fijadas por versión en `requirements.txt`.
+También se verificó la ejecución completa (ingesta, pruebas, P1, P2 y P3) con **Python 3.12.13** desde un clon limpio.
 
 ### Instalación
 
@@ -109,33 +113,64 @@ El manifiesto incluye una `data_version` calculada a partir de los archivos de e
 
 Los datos crudos, intermedios y procesados no se versionan en Git.
 
-## P1 — Regresión: demanda de viajes por estación
+## Reproducción completa desde un clon limpio
 
-Predice el número de viajes iniciados por estación por día (horizonte: 1 día).
-Partición temporal: entrenamiento desde enero, validación desde septiembre y
-prueba del 20 de octubre al 31 de diciembre de 2025.
+```bash
+git clone https://github.com/a01840537/TC5061-Proyecto-Equipo32.git
+cd TC5061-Proyecto-Equipo32
+python -m venv .venv
+source .venv/bin/activate          # Windows (PowerShell): .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+
+python -m mibici.dataset           # 1. ingesta: data/raw -> data/processed + data/manifest.json
+python -m pytest tests             # 2. pruebas de no fuga de información (P1)
+make train                         # 3. P1, P2 y P3 en el experimento mibici-equipo32
+make mlflow-ui                     # 4. http://localhost:5000
+```
+
+`make train` equivale a ejecutar `python -m mibici.modeling.p1_regresion`,
+`python -m mibici.modeling.p2_clasificacion` y `python -m mibici.modeling.p3_clustering`.
+La ingesta debe producir `data_version = 7aa5e436d887`; si el valor cambia, los archivos de MiBici
+descargados no son los mismos que se usaron en los experimentos.
+
+**Privacidad.** Los CSV de MiBici incluyen un pseudónimo de usuario, el género y el año de nacimiento.
+Como ninguna pregunta los necesita, `dataset.py` los elimina antes de escribir los Parquet procesados
+(minimización de datos). Los datos se usan con fines académicos citando la fuente (portal de datos
+abiertos de MiBici) y no se redistribuyen en este repositorio.
+
+## P1 — Regresión de viajes diarios por estación
+
+**Pregunta:** ¿cuántos viajes se iniciarán en cada estación el día siguiente? Usuario: operador del
+sistema (planeación de flota y turnos). Granularidad: estación × día; horizonte: 1 día (la predicción
+del día D se emite al cierre de D-1).
 
 ```bash
 python -m mibici.modeling.p1_regresion
 ```
 
-Registra en MLflow los runs `p1_baseline_poisson`, `p1_candidato_hgb` y
-`p1_modelo_final`, con métricas de error en el conjunto de prueba.
+- **Partición temporal:** TRAIN ene-sep 2025, VAL oct 2025 (selección del modelo), TEST nov-dic 2025.
+- **Variables** (`mibici/features.py`, funciones `p1_*`): calendario del día objetivo (día de la semana,
+  fin de semana, feriado), rezagos de 1, 2, 7 y 14 días, medias móviles de 7 y 28 días que terminan en
+  D-1, promedio del mismo día de las 4 semanas previas, antigüedad y capacidad de la estación.
+  `p1_agregar_features` lanza `LeakageError` si se pide un rezago menor que el horizonte.
+- **Modelos:** baseline ingenuo semanal (`t − 7 días`), candidato lineal `PoissonRegressor`
+  (conteos en `log1p`) y candidato `HistGradientBoostingRegressor` con pérdida Poisson.
+- **Métricas:** `train_/val_/test_` + `mae`, `rmse`, `wape`, `r2`, `sesgo` y `mape_total_dia`.
+- **Runs:** `p1_baseline_naive_semanal`, `p1_candidato_poisson_lineal`, `p1_candidato_hgb_poisson`.
 
-## P2 — Clasificación: riesgo de disponibilidad
+## P2 — Clasificación de riesgo de disponibilidad
 
-Clasifica si una estación quedará en riesgo de quedarse sin bicicletas o sin
-anclajes en las próximas 2 horas. El riesgo se aproxima comparando el flujo neto
-contra el 40% de la capacidad de la estación (los datos abiertos no incluyen
-inventario). Partición temporal: entrenamiento enero–septiembre, validación
-octubre, prueba noviembre–diciembre de 2025.
+**Pregunta:** ¿una estación estará en riesgo de quedarse sin bicicletas o sin anclajes en las próximas
+2 horas? Usuario: equipo de rebalanceo.
 
 ```bash
 python -m mibici.modeling.p2_clasificacion
 ```
 
-Registra en MLflow los runs `p2_baseline_logreg` y `p2_candidato_hgb`; por el
-desbalance de clases, las métricas principales son `test_f1` y `test_recall`.
+- **Etiqueta:** riesgo si `|neto(t+1 … t+2)| >= 0.4 × capacidad` (`p2_agregar_etiqueta`).
+- **Partición temporal:** TRAIN ene-sep, VAL oct (umbral de decisión que maximiza F1), TEST nov-dic 2025.
+- **Modelos:** baseline regresión logística balanceada y candidato `HistGradientBoostingClassifier`.
+- **Runs:** `p2_baseline_logreg`, `p2_candidato_hgb`.
 
 ## P3 — Clustering de estaciones
 
@@ -191,6 +226,11 @@ Los runs tienen nombres descriptivos:
 - `p3_candidato_agglomerative_k4`
 - `p3_kmeans_final`
 
+Además de los tres runs de P3, el experimento contiene los runs de P1 (`p1_baseline_naive_semanal`,
+`p1_candidato_poisson_lineal`, `p1_candidato_hgb_poisson`) y de P2 (`p2_baseline_logreg`,
+`p2_candidato_hgb`). Todos llevan los tags `equipo = equipo32`, `problema` (P1/P2/P3), `pregunta`,
+`etapa` (baseline/candidato), `git_commit` y `data_version`.
+
 Cada run registra, según corresponda:
 
 - versión de los datos (`data_version`);
@@ -228,9 +268,12 @@ Para P3 se utiliza la rama `feature/p3-clustering`.
 
 ## Equipo 32
 
-| Integrante | Rol |
-|------------|-----|
-| Rolando Calderón Carballo -  | Infraestructura: repo, ingesta reproducible, versionado de datos, configuración |
-| Johanna Camargo Medina | P1 — Regresión: demanda de viajes por estación |
-| Alejandro Cardona Esquivel | P2 — Clasificación: riesgo de disponibilidad por estación |
-| Gerardo Conde Reynoso | P3 — Clustering: patrones de uso de estaciones |
+| Integrante | Matrícula | GitHub | Rol |
+|------------|-----------|--------|-----|
+| Rolando Calderón Carballo | A01840537 | `a01840537` | Infraestructura: repo, ingesta reproducible, versionado de datos, configuración |
+| Leydy Johanna Camargo Medina | A01840540 | `JohannaCamargo2805` | P1 — Regresión: demanda de viajes por estación |
+| Manuel Alejandro Cardona Esquivel | A01795954 | `alexcard33` | P2 — Clasificación: riesgo de disponibilidad por estación |
+| Gerardo Iván Conde Reynoso | A01840602 | `GIvanConder` | P3 — Clustering: patrones de uso de estaciones |
+
+El detalle de qué hizo cada integrante (commits, Pull Requests y revisiones) está en
+[`CONTRIBUCIONES.md`](CONTRIBUCIONES.md).

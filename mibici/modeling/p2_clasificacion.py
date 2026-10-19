@@ -47,6 +47,7 @@ from mibici.config import (
     P2_VAL_START,
     PROJ_ROOT,
     SEED,
+    TEAM_ID,
     VIAJES_PARQUET,
 )
 from mibici.features import (
@@ -198,6 +199,8 @@ def entrenar_y_registrar(nombre_run, etapa, modelo, datos, contexto) -> dict:
     with mlflow.start_run(run_name=nombre_run):
         mlflow.set_tags(
             {
+                "equipo": TEAM_ID,
+                "mlflow.user": TEAM_ID,
                 "problema": "P2",
                 "tipo": "clasificacion",
                 "etapa": etapa,

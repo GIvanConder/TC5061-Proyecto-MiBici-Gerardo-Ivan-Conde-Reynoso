@@ -3,7 +3,7 @@
 #################################################################################
 
 PROJECT_NAME = tc5061-proyecto-equipo32
-PYTHON_VERSION = 3.10
+PYTHON_VERSION = 3.12
 PYTHON_INTERPRETER = python
 
 #################################################################################
@@ -57,13 +57,34 @@ create_environment:
 #################################################################################
 
 
-## Make dataset
+## Ingesta reproducible y versionado de datos (data/manifest.json)
 .PHONY: data
-data: requirements
-	$(PYTHON_INTERPRETER) mibici/dataset.py
+data:
+	$(PYTHON_INTERPRETER) -m mibici.dataset
+
+## P1: regresión de viajes diarios por estación (MLflow)
+.PHONY: p1
+p1:
+	$(PYTHON_INTERPRETER) -m mibici.modeling.p1_regresion
+
+## P2: clasificación de riesgo de vaciado/llenado (MLflow)
 .PHONY: p2
 p2:
 	$(PYTHON_INTERPRETER) -m mibici.modeling.p2_clasificacion
+
+## P3: clustering de estaciones por patrón de uso (MLflow)
+.PHONY: p3
+p3:
+	$(PYTHON_INTERPRETER) -m mibici.modeling.p3_clustering
+
+## Experimento base completo: P1, P2 y P3 en mibici-equipo32
+.PHONY: train
+train: p1 p2 p3
+
+## Interfaz de MLflow en http://localhost:5000
+.PHONY: mlflow-ui
+mlflow-ui:
+	mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
 
 #################################################################################
 # Self Documenting Commands                                                     #
@@ -74,7 +95,7 @@ p2:
 define PRINT_HELP_PYSCRIPT
 import re, sys; \
 lines = '\n'.join([line for line in sys.stdin]); \
-matches = re.findall(r'\n## (.*)\n[\s\S]+?\n([a-zA-Z_-]+):', lines); \
+matches = re.findall(r'\n## (.*)\n[\s\S]+?\n([a-zA-Z0-9_-]+):', lines); \
 print('Available rules:\n'); \
 print('\n'.join(['{:25}{}'.format(*reversed(match)) for match in matches]))
 endef

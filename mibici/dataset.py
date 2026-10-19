@@ -7,16 +7,16 @@ de hashes. Ejecutable sin pasos manuales:
     python -m mibici.dataset
 """
 
+from datetime import datetime, timezone
 import hashlib
 import json
-import unicodedata
-from datetime import datetime, timezone
 from pathlib import Path
+import unicodedata
 
+from loguru import logger
 import pandas as pd
 import requests
 import typer
-from loguru import logger
 
 from mibici.config import (
     ESTACIONES_PARQUET,
@@ -46,6 +46,10 @@ COLUMNAS_VIAJES = {
     "origen_id": "origen_id",
     "destino_id": "destino_id",
 }
+
+
+# Columnas con datos personales que se eliminan en la ingesta.
+COLUMNAS_PERSONALES = ["usuario_id", "genero", "anio_nacimiento"]
 
 
 def _normalizar_nombre(col: str) -> str:
@@ -92,7 +96,10 @@ def normalizar_viajes(df: pd.DataFrame, origen: str) -> pd.DataFrame:
     df["inicio_viaje"] = pd.to_datetime(df["inicio_viaje"], errors="coerce")
     df["fin_viaje"] = pd.to_datetime(df["fin_viaje"], errors="coerce")
     df["mes_archivo"] = origen
-    return df
+    # Minimización de datos personales (aviso de privacidad de MiBici/AMIM): el
+    # pseudónimo de usuario, el género y el año de nacimiento no se usan en P1-P3,
+    # así que no se guardan en los Parquet procesados.
+    return df.drop(columns=[c for c in COLUMNAS_PERSONALES if c in df.columns])
 
 
 @app.command()
