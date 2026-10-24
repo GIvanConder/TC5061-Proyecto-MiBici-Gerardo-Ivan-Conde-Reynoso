@@ -30,6 +30,7 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import mlflow
+from mlflow.models import infer_signature
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -256,6 +257,7 @@ def entrenar_y_registrar(
     artefactos_detallados: bool = True,
     registrar_modelo: bool = True,
     evaluar_test: bool = True,
+    registrar_contexto_datos: bool = True,
 ) -> dict:
     """Ajusta, evalúa y registra un modelo P1 en MLflow."""
     (x_train, y_train), (x_val, y_val), (x_test, y_test), test = datos
@@ -373,11 +375,49 @@ def entrenar_y_registrar(
             }
         )
         mlflow.log_metrics(metricas)
+
+        if registrar_contexto_datos:
+            train_dataset = x_train.reset_index(drop=True).copy()
+            train_dataset["viajes"] = y_train.to_numpy()
+
+            dataset_mlflow = mlflow.data.from_pandas(
+                train_dataset,
+                source=str(MANIFEST_PATH),
+                targets="viajes",
+                name="p1_train",
+            )
+            mlflow.log_input(dataset_mlflow, context="training")
+
+            mlflow.log_artifact(
+                str(MANIFEST_PATH),
+                artifact_path="data",
+            )
+
+            mlflow.log_dict(
+                {
+                    "question": "p1",
+                    "features": P1_FEATURES,
+                    "seed": SEED,
+                    "train_start": P1_TRAIN_START,
+                    "validation_start": P1_VAL_START,
+                    "test_start": P1_TEST_START,
+                    "test_end": P1_TEST_END,
+                    "data_version": contexto["data_version"],
+                    "model_params": params_modelo,
+                },
+                "config/p1_resolved_config.json",
+            )
+
         if registrar_modelo and not isinstance(modelo, BaselineNaiveSemanal):
             ejemplo = x_test.head(5) if evaluar_test else x_val.head(5)
+            firma = infer_signature(
+                ejemplo,
+                modelo.predict(ejemplo),
+            )
             mlflow.sklearn.log_model(
                 modelo,
                 name="modelo",
+                signature=firma,
                 input_example=ejemplo,
                 skops_trusted_types=SKOPS_TRUSTED,
             )
@@ -605,6 +645,7 @@ def ejecutar_busqueda_hgb_p1(
                     artefactos_detallados=False,
                     registrar_modelo=False,
                     evaluar_test=False,
+                    registrar_contexto_datos=False,
                 )
 
                 resultados.append(
