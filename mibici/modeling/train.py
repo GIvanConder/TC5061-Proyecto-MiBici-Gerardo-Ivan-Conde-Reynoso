@@ -79,6 +79,47 @@ def main(
         typer.echo(json.dumps(metricas, ensure_ascii=False, indent=2))
         return
 
+    if question == "p2":
+        from mibici.modeling.p2_clasificacion import (
+            ejecutar_busqueda_hgb_p2,
+            ejecutar_modelo_p2,
+        )
+
+        if model == "hgb_search":
+            if params:
+                raise typer.BadParameter(
+                    "hgb_search usa la rejilla definida en config.py "
+                    "y no acepta params_json.",
+                    param_hint="params-json",
+                )
+
+            resultados = ejecutar_busqueda_hgb_p2()
+            typer.echo(
+                json.dumps(
+                    resultados,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return
+
+        try:
+            metricas = ejecutar_modelo_p2(model, params)
+        except ValueError as exc:
+            raise typer.BadParameter(
+                str(exc),
+                param_hint="model",
+            ) from exc
+
+        typer.echo(
+            json.dumps(
+                metricas,
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+
     raise typer.BadParameter(
         f"{question} todavía no está conectado al nuevo orquestador.",
         param_hint="question",
