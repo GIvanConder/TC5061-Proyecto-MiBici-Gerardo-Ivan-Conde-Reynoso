@@ -95,6 +95,65 @@ P2_MAX_DURATION_SECONDS = 86400
 P2_MLFLOW_EXPERIMENT = "mibici-equipo32"
 P2_MLFLOW_BASELINE_RUN_NAME = "p2_baseline_logreg"
 P2_MLFLOW_CANDIDATE_RUN_NAME = "p2_candidato_hgb"
+P2_MLFLOW_RF_RUN_NAME = "p2_candidato_random_forest"
+P2_MLFLOW_ET_RUN_NAME = "p2_candidato_extra_trees"
+P2_MLFLOW_SEARCH_RUN_NAME = "p2_busqueda_hgb"
+
+P2_HGB_PARAMS = {
+    "max_iter": 200,
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 20,
+    "l2_regularization": 0.0,
+}
+
+P2_RF_PARAMS = {
+    "n_estimators": 200,
+    "max_depth": 16,
+    "min_samples_leaf": 2,
+    "max_features": "sqrt",
+    "n_jobs": -1,
+}
+
+P2_ET_PARAMS = {
+    "n_estimators": 200,
+    "max_depth": 16,
+    "min_samples_leaf": 2,
+    "max_features": "sqrt",
+    "n_jobs": -1,
+}
+
+P2_HGB_SEARCH_GRID = [
+    {
+        "learning_rate": 0.05,
+        "max_iter": 300,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 20,
+        "l2_regularization": 0.0,
+    },
+    {
+        "learning_rate": 0.08,
+        "max_iter": 250,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 30,
+        "l2_regularization": 1.0,
+    },
+    {
+        "learning_rate": 0.05,
+        "max_iter": 350,
+        "max_leaf_nodes": 63,
+        "min_samples_leaf": 30,
+        "l2_regularization": 2.0,
+    },
+    {
+        "learning_rate": 0.12,
+        "max_iter": 200,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 20,
+        "l2_regularization": 1.0,
+    },
+]
+
 P2_QUESTION = (
     "¿Una estación estará en riesgo de quedarse sin bicicletas o sin anclajes "
     "en las próximas horas?"
