@@ -138,10 +138,51 @@ P1_HGB_PARAMS = {
     "early_stopping": False,
 }
 
+P1_RF_PARAMS = {
+    "n_estimators": 200,
+    "max_depth": 16,
+    "min_samples_leaf": 2,
+    "max_features": "sqrt",
+    "n_jobs": -1,
+}
+
+P1_HGB_SEARCH_GRID = [
+    {
+        "learning_rate": 0.04,
+        "max_iter": 500,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 50,
+        "l2_regularization": 1.0,
+    },
+    {
+        "learning_rate": 0.08,
+        "max_iter": 300,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 40,
+        "l2_regularization": 1.0,
+    },
+    {
+        "learning_rate": 0.06,
+        "max_iter": 500,
+        "max_leaf_nodes": 63,
+        "min_samples_leaf": 50,
+        "l2_regularization": 2.0,
+    },
+    {
+        "learning_rate": 0.10,
+        "max_iter": 250,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 40,
+        "l2_regularization": 2.0,
+    },
+]
+
 P1_MLFLOW_EXPERIMENT = "mibici-equipo32"
 P1_MLFLOW_BASELINE_RUN_NAME = "p1_baseline_naive_semanal"
 P1_MLFLOW_LINEAL_RUN_NAME = "p1_candidato_poisson_lineal"
 P1_MLFLOW_CANDIDATE_RUN_NAME = "p1_candidato_hgb_poisson"
+P1_MLFLOW_RF_RUN_NAME = "p1_candidato_random_forest"
+P1_MLFLOW_SEARCH_RUN_NAME = "p1_busqueda_hgb"
 P1_QUESTION = "¿Cuántos viajes se iniciarán en cada estación el día siguiente?"
 
 P1_OUTPUT_DIR = REPORTS_DIR / "p1"

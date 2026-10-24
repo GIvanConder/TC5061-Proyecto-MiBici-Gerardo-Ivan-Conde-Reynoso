@@ -19,6 +19,7 @@ Ejecución::
 """
 
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -32,7 +33,7 @@ import mlflow
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import PoissonRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -46,6 +47,7 @@ from mibici.config import (
     P1_BASELINE_LAG_DIAS,
     P1_FERIADOS,
     P1_HGB_PARAMS,
+    P1_HGB_SEARCH_GRID,
     P1_HORIZONTE_DIAS,
     P1_LAGS_DIAS,
     P1_LINEAL_ALPHA,
@@ -55,8 +57,11 @@ from mibici.config import (
     P1_MLFLOW_CANDIDATE_RUN_NAME,
     P1_MLFLOW_EXPERIMENT,
     P1_MLFLOW_LINEAL_RUN_NAME,
+    P1_MLFLOW_RF_RUN_NAME,
+    P1_MLFLOW_SEARCH_RUN_NAME,
     P1_OUTPUT_DIR,
     P1_QUESTION,
+    P1_RF_PARAMS,
     P1_TEST_END,
     P1_TEST_START,
     P1_TRAIN_START,
@@ -156,6 +161,13 @@ def construir_hgb(**overrides) -> HistGradientBoostingRegressor:
     return HistGradientBoostingRegressor(**params)
 
 
+def construir_random_forest(**overrides) -> RandomForestRegressor:
+    """Random Forest de regresión configurable para comparación con modelos Poisson."""
+    params = {**P1_RF_PARAMS, **overrides}
+    params.setdefault("random_state", SEED)
+    return RandomForestRegressor(**params)
+
+
 def evaluar(y: pd.Series, pred: np.ndarray, prefijo: str) -> dict:
     """Métricas de regresión a nivel estación-día y de total diario del sistema."""
     pred = np.clip(pred, 0, None)
@@ -233,20 +245,46 @@ def guardar_importancias(modelo, x_val: pd.DataFrame, y_val: pd.Series, nombre: 
     return [ruta_png, ruta_csv]
 
 
-def entrenar_y_registrar(nombre_run, etapa, modelo, datos, contexto, base_test) -> dict:
-    """Ajusta en TRAIN, evalúa en TRAIN/VAL/TEST y registra todo en MLflow."""
+def entrenar_y_registrar(
+    nombre_run,
+    etapa,
+    modelo,
+    datos,
+    contexto,
+    base_test,
+    nested: bool = False,
+    artefactos_detallados: bool = True,
+    registrar_modelo: bool = True,
+    evaluar_test: bool = True,
+) -> dict:
+    """Ajusta, evalúa y registra un modelo P1 en MLflow."""
     (x_train, y_train), (x_val, y_val), (x_test, y_test), test = datos
 
     modelo.fit(x_train, y_train)
-    pred = {n: modelo.predict(x) for n, x in (("train", x_train), ("val", x_val), ("test", x_test))}
+
+    pred_train = modelo.predict(x_train)
+    pred_val = modelo.predict(x_val)
+
     metricas = {
-        **evaluar(y_train, pred["train"], "train"),
-        **evaluar(y_val, pred["val"], "val"),
-        **evaluar(y_test, pred["test"], "test"),
+        **evaluar(y_train, pred_train, "train"),
+        **evaluar(y_val, pred_val, "val"),
     }
-    artefactos = guardar_graficas(nombre_run, test, pred["test"], base_test)
-    if isinstance(modelo, HistGradientBoostingRegressor):
-        artefactos += guardar_importancias(modelo, x_val, y_val, nombre_run)
+
+    pred_test = None
+    if evaluar_test:
+        pred_test = modelo.predict(x_test)
+        metricas.update(evaluar(y_test, pred_test, "test"))
+
+    artefactos = []
+    if artefactos_detallados:
+        if pred_test is None:
+            raise ValueError(
+                "Los artefactos detallados requieren evaluar_test=True."
+            )
+        artefactos += guardar_graficas(nombre_run, test, pred_test, base_test)
+        if isinstance(modelo, HistGradientBoostingRegressor):
+            artefactos += guardar_importancias(modelo, x_val, y_val, nombre_run)
+
     ruta_metricas = P1_OUTPUT_DIR / f"{nombre_run}_metricas.json"
     ruta_metricas.write_text(json.dumps(metricas, indent=2))
     artefactos.append(ruta_metricas)
@@ -265,7 +303,7 @@ def entrenar_y_registrar(nombre_run, etapa, modelo, datos, contexto, base_test) 
             "transformacion_conteos": "log1p",
             "escalado": "StandardScaler",
         }
-    else:
+    elif isinstance(modelo, HistGradientBoostingRegressor):
         params_hgb = modelo.get_params()
         claves_hgb = (
             "loss",
@@ -282,8 +320,24 @@ def entrenar_y_registrar(nombre_run, etapa, modelo, datos, contexto, base_test) 
             "modelo": "HistGradientBoostingRegressor",
             **{k: params_hgb[k] for k in claves_hgb},
         }
+    elif isinstance(modelo, RandomForestRegressor):
+        params_rf = modelo.get_params()
+        claves_rf = (
+            "n_estimators",
+            "max_depth",
+            "min_samples_leaf",
+            "max_features",
+            "n_jobs",
+            "random_state",
+        )
+        params_modelo = {
+            "modelo": "RandomForestRegressor",
+            **{k: params_rf[k] for k in claves_rf},
+        }
+    else:
+        raise TypeError(f"Modelo P1 no soportado para registro: {type(modelo).__name__}")
 
-    with mlflow.start_run(run_name=nombre_run):
+    with mlflow.start_run(run_name=nombre_run, nested=nested):
         mlflow.set_tags(
             {
                 "equipo": TEAM_ID,
@@ -319,17 +373,30 @@ def entrenar_y_registrar(nombre_run, etapa, modelo, datos, contexto, base_test) 
             }
         )
         mlflow.log_metrics(metricas)
-        if not isinstance(modelo, BaselineNaiveSemanal):
+        if registrar_modelo and not isinstance(modelo, BaselineNaiveSemanal):
+            ejemplo = x_test.head(5) if evaluar_test else x_val.head(5)
             mlflow.sklearn.log_model(
-                modelo, name="modelo", input_example=x_test.head(5), skops_trusted_types=SKOPS_TRUSTED
+                modelo,
+                name="modelo",
+                input_example=ejemplo,
+                skops_trusted_types=SKOPS_TRUSTED,
             )
         for ruta in artefactos:
             mlflow.log_artifact(str(ruta), artifact_path="evaluacion")
 
-    logger.info(
-        f"{nombre_run}: val_mae={metricas['val_mae']:.3f} test_mae={metricas['test_mae']:.3f} "
-        f"test_rmse={metricas['test_rmse']:.3f} test_wape={metricas['test_wape']:.3f}"
-    )
+    if evaluar_test:
+        logger.info(
+            f"{nombre_run}: val_mae={metricas['val_mae']:.3f} "
+            f"test_mae={metricas['test_mae']:.3f} "
+            f"test_rmse={metricas['test_rmse']:.3f} "
+            f"test_wape={metricas['test_wape']:.3f}"
+        )
+    else:
+        logger.info(
+            f"{nombre_run}: val_mae={metricas['val_mae']:.3f} "
+            f"val_rmse={metricas['val_rmse']:.3f} "
+            f"val_wape={metricas['val_wape']:.3f}"
+        )
     return metricas
 
 
@@ -362,8 +429,17 @@ def construir_modelo_p1(model: str, params: dict):
                 f"Parámetros no válidos para hgb: {params}"
             ) from exc
 
+    if model == "random_forest":
+        try:
+            return construir_random_forest(**params)
+        except TypeError as exc:
+            raise ValueError(
+                f"Parámetros no válidos para random_forest: {params}"
+            ) from exc
+
     raise ValueError(
-        f"Modelo P1 inválido: {model}. Usa baseline, poisson o hgb."
+        "Modelo P1 inválido: "
+        f"{model}. Usa baseline, poisson, hgb o random_forest."
     )
 
 def preparar_datos_p1(viajes_path: Path = VIAJES_PARQUET):
@@ -447,6 +523,143 @@ def preparar_datos_p1(viajes_path: Path = VIAJES_PARQUET):
     return datos, contexto, base_test
 
 
+
+def ejecutar_busqueda_hgb_p1(
+    experiment_name: str = P1_MLFLOW_EXPERIMENT,
+) -> dict:
+    """Busca hiperparámetros HGB con trials anidados y selección exclusiva en VAL."""
+    mlflow.set_experiment(experiment_name)
+
+    datos, contexto, base_test = preparar_datos_p1()
+
+    if contexto["git_sucio"]:
+        logger.warning(
+            "Hay cambios sin commit: la búsqueda no será reproducible desde git_commit."
+        )
+
+    project_run_id = os.environ.get("MLFLOW_RUN_ID")
+
+    if project_run_id:
+        parent_context = mlflow.start_run(run_id=project_run_id)
+    else:
+        parent_context = mlflow.start_run(run_name=P1_MLFLOW_SEARCH_RUN_NAME)
+
+    resultados = []
+
+    with parent_context as parent_run:
+        mlflow.set_tags(
+            {
+                "equipo": TEAM_ID,
+                "team": TEAM_ID,
+                "question": "p1",
+                "tipo": "regresion",
+                "stage_of_work": "hyperparameter_search",
+                "model_family": "HistGradientBoostingRegressor",
+                "pregunta": P1_QUESTION,
+                "responsable": "Gerardo Ivan Conde Reynoso",
+                "git_commit": contexto["git_commit"],
+                "git_sucio": str(contexto["git_sucio"]),
+                "data_version": contexto["data_version"],
+                "selection_split": "validation",
+            }
+        )
+
+        mlflow.log_params(
+            {
+                "search_strategy": "grid_manual",
+                "num_trials": len(P1_HGB_SEARCH_GRID),
+                "selection_metric": "val_mae",
+                "test_used_for_selection": False,
+                "data_version": contexto["data_version"],
+            }
+        )
+
+        mlflow.log_dict(
+            {"trials": P1_HGB_SEARCH_GRID},
+            "search/grid_hgb.json",
+        )
+
+        # MLflow Projects define MLFLOW_RUN_ID para el run padre.
+        # Una vez reanudado ese padre, se retira temporalmente para permitir
+        # que start_run(nested=True) cree runs hijos reales.
+        saved_run_id = os.environ.pop("MLFLOW_RUN_ID", None)
+
+        try:
+            for idx, params in enumerate(P1_HGB_SEARCH_GRID, start=1):
+                nombre_trial = f"p1_hgb_trial_{idx:02d}"
+
+                logger.info(
+                    f"Ejecutando {nombre_trial}/{len(P1_HGB_SEARCH_GRID)}: {params}"
+                )
+
+                modelo = construir_hgb(**params)
+
+                metricas = entrenar_y_registrar(
+                    nombre_run=nombre_trial,
+                    etapa="hyperparameter_trial",
+                    modelo=modelo,
+                    datos=datos,
+                    contexto=contexto,
+                    base_test=base_test,
+                    nested=True,
+                    artefactos_detallados=False,
+                    registrar_modelo=False,
+                    evaluar_test=False,
+                )
+
+                resultados.append(
+                    {
+                        "trial": idx,
+                        "run_name": nombre_trial,
+                        "params": params,
+                        "val_mae": metricas["val_mae"],
+                        "val_rmse": metricas["val_rmse"],
+                        "val_wape": metricas["val_wape"],
+                    }
+                )
+        finally:
+            if saved_run_id is not None:
+                os.environ["MLFLOW_RUN_ID"] = saved_run_id
+
+        mejor = min(resultados, key=lambda r: r["val_mae"])
+
+        mlflow.log_metrics(
+            {
+                "best_val_mae": mejor["val_mae"],
+                "best_val_rmse": mejor["val_rmse"],
+                "best_val_wape": mejor["val_wape"],
+            }
+        )
+
+        mlflow.set_tags(
+            {
+                "best_trial": mejor["run_name"],
+                "best_params_json": json.dumps(
+                    mejor["params"],
+                    sort_keys=True,
+                ),
+            }
+        )
+
+        resumen = {
+            "parent_run_id": parent_run.info.run_id,
+            "selection_metric": "val_mae",
+            "best_trial": mejor,
+            "results": resultados,
+        }
+
+        mlflow.log_dict(
+            resumen,
+            "search/resumen_busqueda_hgb.json",
+        )
+
+        logger.success(
+            f"Mejor trial: {mejor['run_name']} "
+            f"val_mae={mejor['val_mae']:.4f}"
+        )
+
+        return resumen
+
 def ejecutar_modelo_p1(
     model_name: str,
     params: dict,
@@ -468,6 +681,7 @@ def ejecutar_modelo_p1(
         "baseline": (P1_MLFLOW_BASELINE_RUN_NAME, "baseline"),
         "poisson": (P1_MLFLOW_LINEAL_RUN_NAME, "candidate"),
         "hgb": (P1_MLFLOW_CANDIDATE_RUN_NAME, "candidate"),
+        "random_forest": (P1_MLFLOW_RF_RUN_NAME, "candidate"),
     }
 
     nombre_run, etapa = nombres[model_name.strip().lower()]

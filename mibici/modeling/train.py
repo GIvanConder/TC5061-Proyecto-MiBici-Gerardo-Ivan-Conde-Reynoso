@@ -45,7 +45,28 @@ def main(
     logger.info(f"Hiperparámetros: {params}")
 
     if question == "p1":
-        from mibici.modeling.p1_regresion import ejecutar_modelo_p1
+        from mibici.modeling.p1_regresion import (
+            ejecutar_busqueda_hgb_p1,
+            ejecutar_modelo_p1,
+        )
+
+        if model == "hgb_search":
+            if params:
+                raise typer.BadParameter(
+                    "hgb_search usa la rejilla definida en config.py "
+                    "y no acepta params_json.",
+                    param_hint="params-json",
+                )
+
+            resultados = ejecutar_busqueda_hgb_p1()
+            typer.echo(
+                json.dumps(
+                    resultados,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return
 
         try:
             metricas = ejecutar_modelo_p1(model, params)
