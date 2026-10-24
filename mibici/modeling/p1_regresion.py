@@ -81,7 +81,10 @@ from mibici.features import (
 
 app = typer.Typer()
 
-SKOPS_TRUSTED = ["sklearn.ensemble._hist_gradient_boosting.predictor.TreePredictor"]
+SKOPS_TRUSTED = [
+    "sklearn.ensemble._hist_gradient_boosting.predictor.TreePredictor",
+    "sklearn.tree._tree.Tree",
+]
 DIAS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
 
 
