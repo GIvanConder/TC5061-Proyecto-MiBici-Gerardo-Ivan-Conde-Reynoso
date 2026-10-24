@@ -16,4 +16,4 @@ entry_points:
       params_json:
         type: string
         default: "{}"
-    command: "python -m mibici.modeling.train --question {question} --model {model} --params-json '{params_json}'"
+    command: "python -m mibici.modeling.train --question {question} --model {model} --params-json {params_json}"
