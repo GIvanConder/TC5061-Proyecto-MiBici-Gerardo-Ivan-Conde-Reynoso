@@ -108,11 +108,12 @@ P2_HGB_PARAMS = {
 }
 
 P2_RF_PARAMS = {
-    "n_estimators": 200,
-    "max_depth": 16,
-    "min_samples_leaf": 2,
+    "n_estimators": 60,
+    "max_depth": 10,
+    "min_samples_leaf": 20,
     "max_features": "sqrt",
-    "n_jobs": -1,
+    "max_samples": 0.20,
+    "n_jobs": 2,
 }
 
 P2_ET_PARAMS = {
