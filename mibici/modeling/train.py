@@ -1,29 +1,67 @@
-from pathlib import Path
+import json
 
 from loguru import logger
-from tqdm import tqdm
 import typer
 
-from mibici.config import MODELS_DIR, PROCESSED_DATA_DIR
+app = typer.Typer(add_completion=False)
 
-app = typer.Typer()
+VALID_QUESTIONS = {"p1", "p2", "p3"}
 
 
 @app.command()
 def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    features_path: Path = PROCESSED_DATA_DIR / "features.csv",
-    labels_path: Path = PROCESSED_DATA_DIR / "labels.csv",
-    model_path: Path = MODELS_DIR / "model.pkl",
-    # -----------------------------------------
+    question: str = typer.Option(..., help="Pregunta del proyecto: p1, p2 o p3."),
+    model: str = typer.Option(..., help="Modelo o familia de modelo a ejecutar."),
+    params_json: str = typer.Option(
+        "{}",
+        help="Hiperparámetros del modelo en formato JSON.",
+    ),
 ):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Training some model...")
-    for i in tqdm(range(10), total=10):
-        if i == 5:
-            logger.info("Something happened for iteration 5.")
-    logger.success("Modeling training complete.")
-    # -----------------------------------------
+    question = question.strip().lower()
+    model = model.strip().lower()
+
+    if question not in VALID_QUESTIONS:
+        raise typer.BadParameter(
+            f"Pregunta inválida: {question}. Usa p1, p2 o p3.",
+            param_hint="question",
+        )
+
+    try:
+        params = json.loads(params_json)
+    except json.JSONDecodeError as exc:
+        raise typer.BadParameter(
+            f"params_json no es JSON válido: {exc.msg}",
+            param_hint="params-json",
+        ) from exc
+
+    if not isinstance(params, dict):
+        raise typer.BadParameter(
+            "params_json debe contener un objeto JSON.",
+            param_hint="params-json",
+        )
+
+    logger.info(f"Pregunta: {question}")
+    logger.info(f"Modelo: {model}")
+    logger.info(f"Hiperparámetros: {params}")
+
+    if question == "p1":
+        from mibici.modeling.p1_regresion import ejecutar_modelo_p1
+
+        try:
+            metricas = ejecutar_modelo_p1(model, params)
+        except ValueError as exc:
+            raise typer.BadParameter(
+                str(exc),
+                param_hint="model",
+            ) from exc
+
+        typer.echo(json.dumps(metricas, ensure_ascii=False, indent=2))
+        return
+
+    raise typer.BadParameter(
+        f"{question} todavía no está conectado al nuevo orquestador.",
+        param_hint="question",
+    )
 
 
 if __name__ == "__main__":

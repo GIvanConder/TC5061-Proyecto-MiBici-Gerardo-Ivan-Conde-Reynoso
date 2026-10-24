@@ -1,0 +1,19 @@
+name: mibici-gerardo-ivan-conde-reynoso
+
+python_env: python_env.yaml
+
+entry_points:
+
+  ingest:
+    command: "python -m mibici.dataset"
+
+  train:
+    parameters:
+      question:
+        type: string
+      model:
+        type: string
+      params_json:
+        type: string
+        default: "{}"
+    command: "python -m mibici.modeling.train --question {question} --model {model} --params-json '{params_json}'"

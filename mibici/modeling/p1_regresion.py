@@ -121,12 +121,11 @@ def cortar(df: pd.DataFrame, inicio: str, fin: str) -> pd.DataFrame:
     return df.loc[(fecha >= pd.Timestamp(inicio)) & (fecha < pd.Timestamp(fin))]
 
 
-def construir_lineal() -> Pipeline:
-    """Candidato 1: regresión Poisson lineal (enlace log).
-
-    Los conteos (rezagos y medias) entran como ``log1p`` para que el modelo sea
-    multiplicativo y estable; el día de la semana entra en one-hot.
-    """
+def construir_lineal(
+    alpha: float = P1_LINEAL_ALPHA,
+    max_iter: int = 1000,
+) -> Pipeline:
+    """Candidato Poisson lineal configurable, conservando los defaults de P1."""
     conteos = [c for c in P1_FEATURES if c.startswith(("lag_", "media_"))]
     otras = [c for c in P1_FEATURES if c not in conteos and c != "dia_semana"]
     return Pipeline(
@@ -145,14 +144,16 @@ def construir_lineal() -> Pipeline:
                     ]
                 ),
             ),
-            ("modelo", PoissonRegressor(alpha=P1_LINEAL_ALPHA, max_iter=1000)),
+            ("modelo", PoissonRegressor(alpha=alpha, max_iter=max_iter)),
         ]
     )
 
 
-def construir_hgb() -> HistGradientBoostingRegressor:
-    """Candidato 2: gradient boosting con pérdida Poisson (conteos no negativos)."""
-    return HistGradientBoostingRegressor(**P1_HGB_PARAMS, random_state=SEED)
+def construir_hgb(**overrides) -> HistGradientBoostingRegressor:
+    """HGB Poisson configurable, conservando los defaults definidos en config.py."""
+    params = {**P1_HGB_PARAMS, **overrides}
+    params.setdefault("random_state", SEED)
+    return HistGradientBoostingRegressor(**params)
 
 
 def evaluar(y: pd.Series, pred: np.ndarray, prefijo: str) -> dict:
@@ -251,27 +252,50 @@ def entrenar_y_registrar(nombre_run, etapa, modelo, datos, contexto, base_test) 
     artefactos.append(ruta_metricas)
 
     if isinstance(modelo, BaselineNaiveSemanal):
-        params_modelo = {"modelo": "NaiveEstacional", "lag_dias": P1_BASELINE_LAG_DIAS}
+        params_modelo = {
+            "modelo": "NaiveEstacional",
+            "lag_dias": P1_BASELINE_LAG_DIAS,
+        }
     elif isinstance(modelo, Pipeline):
+        estimador = modelo.named_steps["modelo"]
         params_modelo = {
             "modelo": "PoissonRegressor",
-            "alpha": P1_LINEAL_ALPHA,
+            "alpha": estimador.alpha,
+            "max_iter": estimador.max_iter,
             "transformacion_conteos": "log1p",
             "escalado": "StandardScaler",
         }
     else:
-        params_modelo = {"modelo": "HistGradientBoostingRegressor", **P1_HGB_PARAMS}
+        params_hgb = modelo.get_params()
+        claves_hgb = (
+            "loss",
+            "learning_rate",
+            "max_iter",
+            "max_leaf_nodes",
+            "min_samples_leaf",
+            "l2_regularization",
+            "max_bins",
+            "early_stopping",
+            "random_state",
+        )
+        params_modelo = {
+            "modelo": "HistGradientBoostingRegressor",
+            **{k: params_hgb[k] for k in claves_hgb},
+        }
 
     with mlflow.start_run(run_name=nombre_run):
         mlflow.set_tags(
             {
                 "equipo": TEAM_ID,
-                "mlflow.user": TEAM_ID,
+                "team": TEAM_ID,
                 "problema": "P1",
+                "question": "p1",
                 "tipo": "regresion",
                 "etapa": etapa,
+                "stage_of_work": etapa,
+                "model_family": params_modelo["modelo"],
                 "pregunta": P1_QUESTION,
-                "responsable": "Johanna Camargo",
+                "responsable": "Gerardo Ivan Conde Reynoso",
                 "git_commit": contexto["git_commit"],
                 "git_sucio": str(contexto["git_sucio"]),
                 "data_version": contexto["data_version"],
@@ -307,6 +331,155 @@ def entrenar_y_registrar(nombre_run, etapa, modelo, datos, contexto, base_test) 
         f"test_rmse={metricas['test_rmse']:.3f} test_wape={metricas['test_wape']:.3f}"
     )
     return metricas
+
+
+
+def construir_modelo_p1(model: str, params: dict):
+    """Construye un único modelo P1 a partir del nombre y sus hiperparámetros."""
+    model = model.strip().lower()
+
+    if model == "baseline":
+        if params:
+            raise ValueError(
+                "El baseline P1 conserva el lag definido en config.py y no acepta overrides."
+            )
+        return BaselineNaiveSemanal(f"lag_{P1_BASELINE_LAG_DIAS}")
+
+    if model == "poisson":
+        permitidos = {"alpha", "max_iter"}
+        desconocidos = set(params) - permitidos
+        if desconocidos:
+            raise ValueError(
+                f"Parámetros no válidos para poisson: {sorted(desconocidos)}"
+            )
+        return construir_lineal(**params)
+
+    if model == "hgb":
+        try:
+            return construir_hgb(**params)
+        except TypeError as exc:
+            raise ValueError(
+                f"Parámetros no válidos para hgb: {params}"
+            ) from exc
+
+    raise ValueError(
+        f"Modelo P1 inválido: {model}. Usa baseline, poisson o hgb."
+    )
+
+def preparar_datos_p1(viajes_path: Path = VIAJES_PARQUET):
+    """Prepara TRAIN, VAL y TEST de P1 conservando la metodología de la Entrega 1."""
+    P1_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    viajes = cargar_viajes(viajes_path)
+    capacidad = cargar_capacidad(ESTACIONES_PARQUET)
+
+    panel = p1_construir_panel_diario(
+        viajes,
+        P1_TRAIN_START,
+        P1_TEST_END,
+    )
+
+    df = p1_agregar_features(
+        panel,
+        capacidad,
+        P1_FERIADOS,
+        P1_LAGS_DIAS,
+        P1_VENTANAS_MEDIA_DIAS,
+        P1_HORIZONTE_DIAS,
+    )
+
+    train = cortar(df, P1_TRAIN_START, P1_VAL_START)
+    val = cortar(df, P1_VAL_START, P1_TEST_START)
+    test = cortar(df, P1_TEST_START, P1_TEST_END)
+
+    filas_antes = {
+        "train": len(train),
+        "val": len(val),
+        "test": len(test),
+    }
+
+    train, val, test = (
+        d.dropna(subset=P1_FEATURES)
+        for d in (train, val, test)
+    )
+
+    for nombre, d in (
+        ("train", train),
+        ("val", val),
+        ("test", test),
+    ):
+        logger.info(
+            f"{nombre}: filas={len(d):,} "
+            f"(sin historia suficiente={filas_antes[nombre] - len(d):,}) "
+            f"estaciones={d.index.get_level_values('estacion').nunique()} "
+            f"media={d['viajes'].mean():.2f} viajes/estacion-dia"
+        )
+
+    datos = (
+        (train[P1_FEATURES].astype("float64"), train["viajes"]),
+        (val[P1_FEATURES].astype("float64"), val["viajes"]),
+        (test[P1_FEATURES].astype("float64"), test["viajes"]),
+        test,
+    )
+
+    base_test = test[
+        f"lag_{P1_BASELINE_LAG_DIAS}"
+    ].to_numpy(dtype="float64")
+
+    git_commit, git_sucio = obtener_git_commit()
+
+    contexto = {
+        "git_commit": git_commit,
+        "git_sucio": git_sucio,
+        "data_version": json.loads(
+            MANIFEST_PATH.read_text()
+        )["data_version"],
+        "params_datos": {
+            "estaciones_test": (
+                test.index.get_level_values("estacion").nunique()
+            ),
+            "filas_train": len(train),
+            "filas_val": len(val),
+            "filas_test": len(test),
+        },
+    }
+
+    return datos, contexto, base_test
+
+
+def ejecutar_modelo_p1(
+    model_name: str,
+    params: dict,
+    experiment_name: str = P1_MLFLOW_EXPERIMENT,
+) -> dict:
+    """Ejecuta y registra una única configuración de P1."""
+    modelo = construir_modelo_p1(model_name, params)
+
+    datos, contexto, base_test = preparar_datos_p1()
+
+    if contexto["git_sucio"]:
+        logger.warning(
+            "Hay cambios sin commit: el run no será reproducible desde git_commit."
+        )
+
+    mlflow.set_experiment(experiment_name)
+
+    nombres = {
+        "baseline": (P1_MLFLOW_BASELINE_RUN_NAME, "baseline"),
+        "poisson": (P1_MLFLOW_LINEAL_RUN_NAME, "candidate"),
+        "hgb": (P1_MLFLOW_CANDIDATE_RUN_NAME, "candidate"),
+    }
+
+    nombre_run, etapa = nombres[model_name.strip().lower()]
+
+    return entrenar_y_registrar(
+        nombre_run,
+        etapa,
+        modelo,
+        datos,
+        contexto,
+        base_test,
+    )
 
 
 @app.command()
