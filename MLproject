@@ -17,3 +17,6 @@ entry_points:
         type: string
         default: "{}"
     command: "python -m mibici.modeling.train --question {question} --model {model} --params-json {params_json}"
+
+  register:
+    command: "python -m mibici.model_registry"
