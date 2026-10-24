@@ -142,6 +142,16 @@ def main():
     hashes = sorted(v["sha256"] for v in manifiesto["archivos"].values())
     manifiesto["data_version"] = hashlib.sha256("".join(hashes).encode()).hexdigest()[:12]
     manifiesto["total_viajes"] = len(viajes)
+
+    # Si la versión de datos no cambió, conservar la fecha original del manifest.
+    if MANIFEST_PATH.exists():
+        manifiesto_anterior = json.loads(MANIFEST_PATH.read_text())
+        if manifiesto_anterior.get("data_version") == manifiesto["data_version"]:
+            manifiesto["generado"] = manifiesto_anterior.get(
+                "generado",
+                manifiesto["generado"],
+            )
+
     MANIFEST_PATH.write_text(json.dumps(manifiesto, indent=2, ensure_ascii=False))
 
     logger.success(
