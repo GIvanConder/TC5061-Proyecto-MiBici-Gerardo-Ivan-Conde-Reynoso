@@ -120,8 +120,52 @@ def main(
         )
         return
 
+    if question == "p3":
+        from mibici.modeling.p3_clustering import (
+            ejecutar_busqueda_kmeans_p3,
+            ejecutar_modelo_p3,
+        )
+
+        if model == "kmeans_search":
+            if params:
+                raise typer.BadParameter(
+                    "kmeans_search usa la rejilla definida en config.py "
+                    "y no acepta params_json.",
+                    param_hint="params-json",
+                )
+
+            resultados = ejecutar_busqueda_kmeans_p3()
+            typer.echo(
+                json.dumps(
+                    resultados,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return
+
+        try:
+            metricas = ejecutar_modelo_p3(
+                model,
+                params,
+            )
+        except ValueError as exc:
+            raise typer.BadParameter(
+                str(exc),
+                param_hint="model",
+            ) from exc
+
+        typer.echo(
+            json.dumps(
+                metricas,
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+
     raise typer.BadParameter(
-        f"{question} todavía no está conectado al nuevo orquestador.",
+        f"Pregunta no soportada: {question}.",
         param_hint="question",
     )
 

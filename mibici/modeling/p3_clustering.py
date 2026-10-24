@@ -1,6 +1,7 @@
 """Pipeline reproducible de clustering de estaciones MiBici."""
 
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -14,6 +15,7 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import mlflow
+from mlflow.models import infer_signature
 import numpy as np
 import pandas as pd
 from sklearn.cluster import AgglomerativeClustering, KMeans
@@ -34,6 +36,7 @@ from mibici.config import (
     P3_AGGLO_LINKAGE,
     P3_BASELINE_K,
     P3_GEO_PATH,
+    P3_KMEANS_SEARCH_GRID,
     P3_MAP_PATH,
     P3_MAX_DURATION_SECONDS,
     P3_MAX_INACTIVITY_DAYS,
@@ -42,7 +45,10 @@ from mibici.config import (
     P3_MLFLOW_BASELINE_RUN_NAME,
     P3_MLFLOW_CANDIDATE_RUN_NAME,
     P3_MLFLOW_EXPERIMENT,
+    P3_MLFLOW_KMEANS_K3_RUN_NAME,
+    P3_MLFLOW_KMEANS_K4_RUN_NAME,
     P3_MLFLOW_RUN_NAME,
+    P3_MLFLOW_SEARCH_RUN_NAME,
     P3_MODEL_PATH,
     P3_N_CLUSTERS,
     P3_N_INIT,
@@ -351,6 +357,777 @@ def generar_mapa(
 
 
 @app.command()
+def construir_kmeans(
+    n_clusters: int,
+    n_init: int = P3_N_INIT,
+) -> KMeans:
+    """Construye KMeans reproducible para P3."""
+    return KMeans(
+        n_clusters=n_clusters,
+        n_init=n_init,
+        random_state=SEED,
+    )
+
+
+def construir_agglomerative(
+    n_clusters: int = P3_N_CLUSTERS,
+    linkage: str = P3_AGGLO_LINKAGE,
+) -> AgglomerativeClustering:
+    """Construye AgglomerativeClustering para comparación."""
+    return AgglomerativeClustering(
+        n_clusters=n_clusters,
+        linkage=linkage,
+    )
+
+
+def construir_modelo_p3(
+    model_name: str,
+    params: dict,
+):
+    """Construye una variante P3 a partir del nombre del MLflow Project."""
+    nombre = model_name.strip().lower()
+
+    if nombre == "kmeans_k2":
+        if params:
+            raise ValueError("kmeans_k2 no acepta params_json.")
+        return construir_kmeans(P3_BASELINE_K)
+
+    if nombre == "kmeans_k3":
+        base = {
+            "n_clusters": 3,
+            "n_init": P3_N_INIT,
+        }
+        base.update(params)
+        return construir_kmeans(**base)
+
+    if nombre == "kmeans_k4":
+        base = {
+            "n_clusters": P3_N_CLUSTERS,
+            "n_init": P3_N_INIT,
+        }
+        base.update(params)
+        return construir_kmeans(**base)
+
+    if nombre == "agglomerative_k4":
+        base = {
+            "n_clusters": P3_N_CLUSTERS,
+            "linkage": P3_AGGLO_LINKAGE,
+        }
+        base.update(params)
+        return construir_agglomerative(**base)
+
+    raise ValueError(
+        f"Modelo P3 inválido: {model_name}. "
+        "Usa kmeans_k2, kmeans_k3, kmeans_k4, "
+        "agglomerative_k4 o kmeans_search."
+    )
+
+
+def evaluar_clustering(
+    x: pd.DataFrame,
+    labels,
+    prefijo: str = "train",
+) -> dict:
+    """Calcula métricas internas comunes de clustering."""
+    return {
+        f"{prefijo}_silhouette": float(
+            silhouette_score(x, labels)
+        ),
+        f"{prefijo}_davies_bouldin": float(
+            davies_bouldin_score(x, labels)
+        ),
+        f"{prefijo}_calinski_harabasz": float(
+            calinski_harabasz_score(x, labels)
+        ),
+    }
+
+
+def preparar_datos_p3(
+    viajes_path: Path = VIAJES_PARQUET,
+    estaciones_path: Path = ESTACIONES_PARQUET,
+):
+    """Prepara features TRAIN, TEST e histórico reducido para P3."""
+    P3_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    P3_PCA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    P3_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    viajes = pd.read_parquet(viajes_path)
+    estaciones = pd.read_parquet(estaciones_path)
+
+    viajes["inicio_viaje"] = pd.to_datetime(
+        viajes["inicio_viaje"]
+    )
+    viajes["fin_viaje"] = pd.to_datetime(
+        viajes["fin_viaje"]
+    )
+
+    viajes = p3_filtrar_viajes(
+        viajes,
+        min_duration_seconds=P3_MIN_DURATION_SECONDS,
+        max_duration_seconds=P3_MAX_DURATION_SECONDS,
+    )
+
+    train = viajes.loc[
+        (viajes["inicio_viaje"] >= pd.Timestamp(P3_TRAIN_START))
+        & (viajes["inicio_viaje"] <= pd.Timestamp(P3_TRAIN_END))
+        & (viajes["fin_viaje"] < pd.Timestamp(P3_TEST_START))
+    ].copy()
+
+    test = viajes.loc[
+        (viajes["inicio_viaje"] >= pd.Timestamp(P3_TEST_START))
+        & (viajes["fin_viaje"] < pd.Timestamp(P3_TEST_END))
+    ].copy()
+
+    features_train, _ = p3_construir_features(
+        train,
+        fin_periodo=pd.Timestamp(P3_TRAIN_END),
+        max_inactivity_days=P3_MAX_INACTIVITY_DAYS,
+        min_history_days=P3_MIN_HISTORY_DAYS,
+    )
+
+    features_test, _ = p3_construir_features(
+        test,
+        fin_periodo=(
+            pd.Timestamp(P3_TEST_END)
+            - pd.Timedelta(seconds=1)
+        ),
+        max_inactivity_days=P3_MAX_INACTIVITY_DAYS,
+        min_history_days=P3_MIN_HISTORY_DAYS,
+    )
+
+    train_reducido = train.loc[
+        train["inicio_viaje"] >= pd.Timestamp(P3_REDUCED_START)
+    ].copy()
+
+    features_reducido, _ = p3_construir_features(
+        train_reducido,
+        fin_periodo=pd.Timestamp(P3_TRAIN_END),
+        max_inactivity_days=P3_MAX_INACTIVITY_DAYS,
+        min_history_days=P3_MIN_HISTORY_DAYS,
+    )
+
+    x_train, scaler = preparar_features(
+        features_train
+    )
+
+    x_test, _ = preparar_features(
+        features_test,
+        scaler=scaler,
+    )
+
+    x_reducido, _ = preparar_features(
+        features_reducido
+    )
+
+    manifest = json.loads(
+        MANIFEST_PATH.read_text()
+    )
+
+    git_commit = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"],
+        cwd=PROJ_ROOT,
+        text=True,
+    ).strip()
+
+    git_sucio = bool(
+        subprocess.check_output(
+            ["git", "status", "--porcelain"],
+            cwd=PROJ_ROOT,
+            text=True,
+        ).strip()
+    )
+
+    if git_sucio:
+        logger.warning(
+            "Hay cambios sin commit: el run no será reproducible "
+            "desde git_commit"
+        )
+
+    contexto = {
+        "git_commit": git_commit,
+        "git_sucio": git_sucio,
+        "data_version": manifest["data_version"],
+        "viajes_limpios": len(viajes),
+        "viajes_train": len(train),
+        "viajes_test": len(test),
+        "estaciones_train": len(x_train),
+        "estaciones_test": len(x_test),
+    }
+
+    return {
+        "viajes": viajes,
+        "train": train,
+        "test": test,
+        "train_reducido": train_reducido,
+        "estaciones": estaciones,
+        "features_train": features_train,
+        "features_test": features_test,
+        "features_reducido": features_reducido,
+        "x_train": x_train,
+        "x_test": x_test,
+        "x_reducido": x_reducido,
+        "scaler": scaler,
+        "contexto": contexto,
+    }
+
+
+def evaluar_kmeans_temporal(
+    modelo: KMeans,
+    datos: dict,
+) -> tuple[dict, pd.Series, pd.Series]:
+    """Evalúa KMeans en TRAIN, TEST y estabilidad histórica."""
+    x_train = datos["x_train"]
+    x_test = datos["x_test"]
+    x_reducido = datos["x_reducido"]
+
+    labels_train = pd.Series(
+        modelo.fit_predict(x_train),
+        index=x_train.index,
+        name="cluster_train",
+    )
+
+    labels_test = pd.Series(
+        modelo.predict(x_test),
+        index=x_test.index,
+        name="cluster_test",
+    )
+
+    modelo_reducido = construir_kmeans(
+        n_clusters=modelo.n_clusters,
+        n_init=modelo.n_init,
+    )
+
+    labels_reducido = pd.Series(
+        modelo_reducido.fit_predict(x_reducido),
+        index=x_reducido.index,
+        name="cluster_reducido",
+    )
+
+    comunes_test = x_train.index.intersection(
+        x_test.index
+    )
+
+    comunes_historico = x_train.index.intersection(
+        x_reducido.index
+    )
+
+    metricas = {
+        **evaluar_clustering(
+            x_train,
+            labels_train,
+            "train",
+        ),
+        **evaluar_clustering(
+            x_test,
+            labels_test,
+            "test",
+        ),
+        "ari_train_test": float(
+            adjusted_rand_score(
+                labels_train.loc[comunes_test],
+                labels_test.loc[comunes_test],
+            )
+        ),
+        "nmi_train_test": float(
+            normalized_mutual_info_score(
+                labels_train.loc[comunes_test],
+                labels_test.loc[comunes_test],
+            )
+        ),
+        "estabilidad_exacta_test": float(
+            (
+                labels_train.loc[comunes_test]
+                == labels_test.loc[comunes_test]
+            ).mean()
+        ),
+        "ari_historico_reducido": float(
+            adjusted_rand_score(
+                labels_train.loc[comunes_historico],
+                labels_reducido.loc[comunes_historico],
+            )
+        ),
+        "nmi_historico_reducido": float(
+            normalized_mutual_info_score(
+                labels_train.loc[comunes_historico],
+                labels_reducido.loc[comunes_historico],
+            )
+        ),
+        "estaciones_comunes": len(comunes_test),
+    }
+
+    return metricas, labels_train, labels_test
+
+
+def ejecutar_modelo_p3(
+    model_name: str,
+    params: dict,
+    experiment_name: str = P3_MLFLOW_EXPERIMENT,
+) -> dict:
+    """Ejecuta una variante individual de P3 mediante MLflow."""
+    mlflow.set_experiment(experiment_name)
+
+    datos = preparar_datos_p3()
+    contexto = datos["contexto"]
+
+    modelo = construir_modelo_p3(
+        model_name,
+        params,
+    )
+
+    nombre = model_name.strip().lower()
+
+    nombres = {
+        "kmeans_k2": (
+            P3_MLFLOW_BASELINE_RUN_NAME,
+            "baseline",
+        ),
+        "agglomerative_k4": (
+            P3_MLFLOW_CANDIDATE_RUN_NAME,
+            "candidate_comparison",
+        ),
+        "kmeans_k3": (
+            P3_MLFLOW_KMEANS_K3_RUN_NAME,
+            "candidate",
+        ),
+        "kmeans_k4": (
+            P3_MLFLOW_KMEANS_K4_RUN_NAME,
+            "candidate",
+        ),
+    }
+
+    if nombre not in nombres:
+        raise ValueError(
+            f"Modelo P3 inválido: {model_name}."
+        )
+
+    nombre_run, etapa = nombres[nombre]
+
+    x_train = datos["x_train"]
+
+    if isinstance(modelo, KMeans):
+        metricas, labels_train, _labels_test = (
+            evaluar_kmeans_temporal(
+                modelo,
+                datos,
+            )
+        )
+    else:
+        labels_train = pd.Series(
+            modelo.fit_predict(x_train),
+            index=x_train.index,
+            name="cluster_train",
+        )
+        metricas = evaluar_clustering(
+            x_train,
+            labels_train,
+            "train",
+        )
+
+    labels_path = (
+        P3_OUTPUT_DIR
+        / f"{nombre_run}_clusters_train.csv"
+    )
+
+    pd.DataFrame(
+        {
+            "estacion": labels_train.index,
+            "cluster": labels_train.to_numpy(),
+        }
+    ).to_csv(
+        labels_path,
+        index=False,
+    )
+
+    with mlflow.start_run(
+        run_name=nombre_run
+    ):
+        mlflow.set_tags(
+            {
+                "team": TEAM_ID,
+                "equipo": TEAM_ID,
+                "question": "p3",
+                "pregunta": P3_QUESTION,
+                "problem_type": "clustering",
+                "tipo": "clustering",
+                "stage_of_work": etapa,
+                "etapa": etapa,
+                "model_family": type(modelo).__name__,
+                "responsable": "Gerardo Ivan Conde Reynoso",
+                "git_commit": contexto["git_commit"],
+                "git_sucio": str(
+                    contexto["git_sucio"]
+                ),
+                "data_version": contexto["data_version"],
+                "selection_split": "train_internal_metrics",
+                "test_used_for_selection": "False",
+            }
+        )
+
+        params_modelo = {
+            k: v
+            for k, v in modelo.get_params(
+                deep=False
+            ).items()
+            if isinstance(
+                v,
+                (str, int, float, bool, type(None)),
+            )
+        }
+
+        mlflow.log_params(
+            {
+                "modelo": type(modelo).__name__,
+                "features": len(P3_MODEL_FEATURES),
+                "train_inicio": P3_TRAIN_START[:10],
+                "train_fin": P3_TRAIN_END[:10],
+                "test_inicio": P3_TEST_START[:10],
+                "test_fin": P3_TEST_END[:10],
+                "reduced_inicio": P3_REDUCED_START[:10],
+                "max_inactivity_days": P3_MAX_INACTIVITY_DAYS,
+                "min_history_days": P3_MIN_HISTORY_DAYS,
+                "transformacion_intensidad": "log1p",
+                "scaler": "StandardScaler",
+                "data_version": contexto["data_version"],
+                **{
+                    f"model_{k}": v
+                    for k, v in params_modelo.items()
+                },
+            }
+        )
+
+        mlflow.log_metrics(metricas)
+
+        dataset_mlflow = mlflow.data.from_pandas(
+            x_train.reset_index(drop=True),
+            source=str(MANIFEST_PATH),
+            name="p3_train",
+        )
+
+        mlflow.log_input(
+            dataset_mlflow,
+            context="training",
+        )
+
+        mlflow.log_artifact(
+            str(MANIFEST_PATH),
+            artifact_path="data",
+        )
+
+        mlflow.log_dict(
+            {
+                "question": "p3",
+                "features": P3_MODEL_FEATURES,
+                "seed": SEED,
+                "train_inicio": P3_TRAIN_START,
+                "train_fin": P3_TRAIN_END,
+                "test_inicio": P3_TEST_START,
+                "test_fin": P3_TEST_END,
+                "reduced_inicio": P3_REDUCED_START,
+                "data_version": contexto["data_version"],
+                "model_params": params_modelo,
+            },
+            "config/p3_resolved_config.json",
+        )
+
+        mlflow.log_artifact(
+            str(labels_path),
+            artifact_path="clusters",
+        )
+
+        if isinstance(modelo, KMeans):
+            ejemplo = x_train.head(5)
+
+            firma = infer_signature(
+                ejemplo,
+                modelo.predict(ejemplo),
+            )
+
+            mlflow.sklearn.log_model(
+                modelo,
+                name="modelo",
+                signature=firma,
+                input_example=ejemplo,
+            )
+
+        else:
+            # Agglomerative no implementa predict(); se conserva
+            # como comparación reproducible, no como modelo desplegable.
+            comparacion_path = (
+                P3_OUTPUT_DIR
+                / f"{nombre_run}_modelo.joblib"
+            )
+            joblib.dump(
+                modelo,
+                comparacion_path,
+            )
+            mlflow.log_artifact(
+                str(comparacion_path),
+                artifact_path="modelo_comparacion",
+            )
+
+    if isinstance(modelo, KMeans):
+        logger.info(
+            f"{nombre_run}: "
+            f"train_silhouette="
+            f"{metricas['train_silhouette']:.4f} "
+            f"test_silhouette="
+            f"{metricas['test_silhouette']:.4f} "
+            f"ari_train_test="
+            f"{metricas['ari_train_test']:.4f}"
+        )
+    else:
+        logger.info(
+            f"{nombre_run}: "
+            f"train_silhouette="
+            f"{metricas['train_silhouette']:.4f}"
+        )
+
+    return metricas
+
+
+def ejecutar_busqueda_kmeans_p3(
+    experiment_name: str = P3_MLFLOW_EXPERIMENT,
+) -> dict:
+    """Busca k de KMeans mediante nested runs usando solo TRAIN."""
+    mlflow.set_experiment(experiment_name)
+
+    datos = preparar_datos_p3()
+    x_train = datos["x_train"]
+    contexto = datos["contexto"]
+
+    resultados = []
+
+    with mlflow.start_run(
+        run_name=P3_MLFLOW_SEARCH_RUN_NAME
+    ) as parent_run:
+        mlflow.set_tags(
+            {
+                "team": TEAM_ID,
+                "equipo": TEAM_ID,
+                "question": "p3",
+                "pregunta": P3_QUESTION,
+                "problem_type": "clustering",
+                "tipo": "clustering",
+                "stage_of_work": "hyperparameter_search",
+                "etapa": "hyperparameter_search",
+                "model_family": "KMeans",
+                "responsable": "Gerardo Ivan Conde Reynoso",
+                "git_commit": contexto["git_commit"],
+                "git_sucio": str(
+                    contexto["git_sucio"]
+                ),
+                "data_version": contexto["data_version"],
+                "selection_split": "train_internal_metrics",
+                "test_used_for_selection": "False",
+            }
+        )
+
+        mlflow.log_params(
+            {
+                "trials": len(P3_KMEANS_SEARCH_GRID),
+                "selection_metric": "train_silhouette",
+                "secondary_metric": "train_davies_bouldin",
+                "features": len(P3_MODEL_FEATURES),
+                "data_version": contexto["data_version"],
+            }
+        )
+
+        mlflow.log_dict(
+            {
+                "grid": P3_KMEANS_SEARCH_GRID,
+                "selection_metric": "train_silhouette",
+                "selection_direction": "maximize",
+                "secondary_metric": "train_davies_bouldin",
+                "secondary_direction": "minimize",
+                "test_used_for_selection": False,
+            },
+            "busqueda/p3_kmeans_grid.json",
+        )
+
+        dataset_mlflow = mlflow.data.from_pandas(
+            x_train.reset_index(drop=True),
+            source=str(MANIFEST_PATH),
+            name="p3_train",
+        )
+
+        mlflow.log_input(
+            dataset_mlflow,
+            context="training",
+        )
+
+        mlflow.log_artifact(
+            str(MANIFEST_PATH),
+            artifact_path="data",
+        )
+
+        # MLflow Projects exporta MLFLOW_RUN_ID.
+        # Se retira temporalmente para que nested=True
+        # cree hijos reales bajo este parent.
+        saved_run_id = os.environ.pop(
+            "MLFLOW_RUN_ID",
+            None,
+        )
+
+        try:
+            for i, params in enumerate(
+                P3_KMEANS_SEARCH_GRID,
+                start=1,
+            ):
+                nombre_trial = (
+                    f"p3_kmeans_trial_{i:02d}"
+                )
+
+                logger.info(
+                    f"Ejecutando {nombre_trial}/"
+                    f"{len(P3_KMEANS_SEARCH_GRID)}: "
+                    f"{params}"
+                )
+
+                modelo = construir_kmeans(
+                    **params
+                )
+
+                labels = modelo.fit_predict(
+                    x_train
+                )
+
+                metricas = evaluar_clustering(
+                    x_train,
+                    labels,
+                    "train",
+                )
+
+                with mlflow.start_run(
+                    run_name=nombre_trial,
+                    nested=True,
+                ):
+                    mlflow.set_tags(
+                        {
+                            "team": TEAM_ID,
+                            "equipo": TEAM_ID,
+                            "question": "p3",
+                            "stage_of_work": (
+                                "hyperparameter_trial"
+                            ),
+                            "model_family": "KMeans",
+                            "git_commit": contexto[
+                                "git_commit"
+                            ],
+                            "data_version": contexto[
+                                "data_version"
+                            ],
+                            "selection_split": (
+                                "train_internal_metrics"
+                            ),
+                            "test_used_for_selection": (
+                                "False"
+                            ),
+                        }
+                    )
+
+                    mlflow.log_params(
+                        {
+                            **params,
+                            "random_state": SEED,
+                            "features": len(
+                                P3_MODEL_FEATURES
+                            ),
+                        }
+                    )
+
+                    mlflow.log_metrics(
+                        metricas
+                    )
+
+                resultados.append(
+                    {
+                        "trial": i,
+                        "run_name": nombre_trial,
+                        "params": params,
+                        "train_silhouette": metricas[
+                            "train_silhouette"
+                        ],
+                        "train_davies_bouldin": metricas[
+                            "train_davies_bouldin"
+                        ],
+                        "train_calinski_harabasz": (
+                            metricas[
+                                "train_calinski_harabasz"
+                            ]
+                        ),
+                    }
+                )
+        finally:
+            if saved_run_id is not None:
+                os.environ[
+                    "MLFLOW_RUN_ID"
+                ] = saved_run_id
+
+        mejor = max(
+            resultados,
+            key=lambda r: (
+                r["train_silhouette"],
+                -r["train_davies_bouldin"],
+                r["train_calinski_harabasz"],
+            ),
+        )
+
+        mlflow.log_metrics(
+            {
+                "best_train_silhouette": mejor[
+                    "train_silhouette"
+                ],
+                "best_train_davies_bouldin": mejor[
+                    "train_davies_bouldin"
+                ],
+                "best_train_calinski_harabasz": mejor[
+                    "train_calinski_harabasz"
+                ],
+            }
+        )
+
+        mlflow.set_tags(
+            {
+                "best_trial": mejor["run_name"],
+                "best_params": json.dumps(
+                    mejor["params"],
+                    sort_keys=True,
+                ),
+            }
+        )
+
+        resumen = {
+            "parent_run_id": (
+                parent_run.info.run_id
+            ),
+            "selection_metric": (
+                "train_silhouette"
+            ),
+            "secondary_metric": (
+                "train_davies_bouldin"
+            ),
+            "test_used_for_selection": False,
+            "best_trial": mejor,
+            "results": resultados,
+        }
+
+        mlflow.log_dict(
+            resumen,
+            "busqueda/p3_kmeans_resultados.json",
+        )
+
+        logger.success(
+            f"Mejor trial: {mejor['run_name']} "
+            f"k={mejor['params']['n_clusters']} "
+            f"silhouette="
+            f"{mejor['train_silhouette']:.4f} "
+            f"davies_bouldin="
+            f"{mejor['train_davies_bouldin']:.4f}"
+        )
+
+        return resumen
+
+
 def main(
     viajes_path: Path = VIAJES_PARQUET,
     estaciones_path: Path = ESTACIONES_PARQUET,
