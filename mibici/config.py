@@ -79,6 +79,16 @@ P3_AGGLO_LINKAGE = "ward"
 
 P3_MLFLOW_BASELINE_RUN_NAME = "p3_baseline_kmeans_k2"
 P3_MLFLOW_CANDIDATE_RUN_NAME = "p3_candidato_agglomerative_k4"
+P3_MLFLOW_KMEANS_K3_RUN_NAME = "p3_candidato_kmeans_k3"
+P3_MLFLOW_KMEANS_K4_RUN_NAME = "p3_candidato_kmeans_k4"
+P3_MLFLOW_SEARCH_RUN_NAME = "p3_busqueda_kmeans"
+
+P3_KMEANS_SEARCH_GRID = [
+    {"n_clusters": 3, "n_init": 20},
+    {"n_clusters": 4, "n_init": 20},
+    {"n_clusters": 5, "n_init": 20},
+    {"n_clusters": 6, "n_init": 20},
+]
 
 # P2
 P2_TRAIN_START = "2025-01-01"  # TRAIN ene-sep
