@@ -47,6 +47,7 @@ from mibici.config import (
     P3_MLFLOW_EXPERIMENT,
     P3_MLFLOW_KMEANS_K3_RUN_NAME,
     P3_MLFLOW_KMEANS_K4_RUN_NAME,
+    P3_MLFLOW_KMEANS_K5_RUN_NAME,
     P3_MLFLOW_RUN_NAME,
     P3_MLFLOW_SEARCH_RUN_NAME,
     P3_MODEL_PATH,
@@ -408,6 +409,14 @@ def construir_modelo_p3(
         base.update(params)
         return construir_kmeans(**base)
 
+    if nombre == "kmeans_k5":
+        base = {
+            "n_clusters": 5,
+            "n_init": P3_N_INIT,
+        }
+        base.update(params)
+        return construir_kmeans(**base)
+
     if nombre == "agglomerative_k4":
         base = {
             "n_clusters": P3_N_CLUSTERS,
@@ -418,7 +427,7 @@ def construir_modelo_p3(
 
     raise ValueError(
         f"Modelo P3 inválido: {model_name}. "
-        "Usa kmeans_k2, kmeans_k3, kmeans_k4, "
+        "Usa kmeans_k2, kmeans_k3, kmeans_k4, kmeans_k5, "
         "agglomerative_k4 o kmeans_search."
     )
 
@@ -658,6 +667,74 @@ def evaluar_kmeans_temporal(
     return metricas, labels_train, labels_test
 
 
+def generar_perfiles_clusters_p3(
+    x_train: pd.DataFrame,
+    labels_train: pd.Series,
+    nombre_run: str,
+):
+    """Genera perfiles medios por cluster como CSV y figura."""
+
+    perfiles = x_train.copy()
+    perfiles["cluster"] = labels_train.to_numpy()
+
+    perfiles_medios = (
+        perfiles
+        .groupby("cluster", sort=True)[P3_MODEL_FEATURES]
+        .mean()
+    )
+
+    csv_path = (
+        P3_OUTPUT_DIR
+        / f"{nombre_run}_perfiles_clusters.csv"
+    )
+    png_path = (
+        P3_OUTPUT_DIR
+        / f"{nombre_run}_perfiles_clusters.png"
+    )
+
+    perfiles_medios.to_csv(csv_path)
+
+    fig, ax = plt.subplots(
+        figsize=(12, max(4, 1.3 * len(perfiles_medios)))
+    )
+
+    imagen = ax.imshow(
+        perfiles_medios.to_numpy(),
+        aspect="auto",
+    )
+
+    ax.set_xticks(range(len(perfiles_medios.columns)))
+    ax.set_xticklabels(
+        perfiles_medios.columns,
+        rotation=45,
+        ha="right",
+    )
+
+    ax.set_yticks(range(len(perfiles_medios.index)))
+    ax.set_yticklabels(
+        [f"Cluster {c}" for c in perfiles_medios.index]
+    )
+
+    ax.set_xlabel("Características del patrón de uso")
+    ax.set_ylabel("Cluster")
+    ax.set_title(
+        f"Perfiles medios estandarizados por cluster — {nombre_run}"
+    )
+
+    barra = fig.colorbar(imagen, ax=ax)
+    barra.set_label("Media estandarizada")
+
+    fig.tight_layout()
+    fig.savefig(
+        png_path,
+        dpi=160,
+        bbox_inches="tight",
+    )
+    plt.close(fig)
+
+    return csv_path, png_path
+
+
 def ejecutar_modelo_p3(
     model_name: str,
     params: dict,
@@ -691,6 +768,10 @@ def ejecutar_modelo_p3(
         ),
         "kmeans_k4": (
             P3_MLFLOW_KMEANS_K4_RUN_NAME,
+            "candidate",
+        ),
+        "kmeans_k5": (
+            P3_MLFLOW_KMEANS_K5_RUN_NAME,
             "candidate",
         ),
     }
@@ -736,6 +817,14 @@ def ejecutar_modelo_p3(
     ).to_csv(
         labels_path,
         index=False,
+    )
+
+    perfil_csv_path, perfil_png_path = (
+        generar_perfiles_clusters_p3(
+            x_train,
+            labels_train,
+            nombre_run,
+        )
     )
 
     with mlflow.start_run(
@@ -832,6 +921,16 @@ def ejecutar_modelo_p3(
         mlflow.log_artifact(
             str(labels_path),
             artifact_path="clusters",
+        )
+
+        mlflow.log_artifact(
+            str(perfil_csv_path),
+            artifact_path="clusters",
+        )
+
+        mlflow.log_artifact(
+            str(perfil_png_path),
+            artifact_path="plots",
         )
 
         if isinstance(modelo, KMeans):

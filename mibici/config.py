@@ -81,6 +81,7 @@ P3_MLFLOW_BASELINE_RUN_NAME = "p3_baseline_kmeans_k2"
 P3_MLFLOW_CANDIDATE_RUN_NAME = "p3_candidato_agglomerative_k4"
 P3_MLFLOW_KMEANS_K3_RUN_NAME = "p3_candidato_kmeans_k3"
 P3_MLFLOW_KMEANS_K4_RUN_NAME = "p3_candidato_kmeans_k4"
+P3_MLFLOW_KMEANS_K5_RUN_NAME = "p3_candidato_kmeans_k5"
 P3_MLFLOW_SEARCH_RUN_NAME = "p3_busqueda_kmeans"
 
 P3_KMEANS_SEARCH_GRID = [
