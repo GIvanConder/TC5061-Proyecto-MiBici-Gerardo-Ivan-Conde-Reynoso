@@ -147,8 +147,7 @@ El archivo `MLproject` define tres puntos de entrada:
 
 ```bash
 mlflow run . \
-  -e ingest \
-  --env-manager local
+  -e ingest
 ```
 
 La ingesta descarga y procesa los datos definidos en `mibici/config.py` y genera:
@@ -226,8 +225,7 @@ mlflow run . \
   -e train \
   -P question=p1 \
   -P model=poisson \
-  -P params_json='{}' \
-  --env-manager local
+  -P params_json='{}'
 ```
 
 ---
@@ -285,8 +283,7 @@ mlflow run . \
   -e train \
   -P question=p2 \
   -P model=hgb \
-  -P params_json='{"learning_rate":0.05,"max_iter":350,"max_leaf_nodes":63,"min_samples_leaf":30,"l2_regularization":2.0}' \
-  --env-manager local
+  -P params_json='{"learning_rate":0.05,"max_iter":350,"max_leaf_nodes":63,"min_samples_leaf":30,"l2_regularization":2.0}'
 ```
 
 ---
@@ -381,8 +378,7 @@ mlflow run . \
   -e train \
   -P question=p3 \
   -P model=kmeans_k4 \
-  -P params_json='{}' \
-  --env-manager local
+  -P params_json='{}'
 ```
 
 ---
@@ -489,8 +485,7 @@ Los modelos seleccionados de P1, P2 y P3 se registran mediante el entrypoint:
 ```bash
 mlflow run . \
   --experiment-name mibici-equipo32 \
-  -e register \
-  --env-manager local
+  -e register
 ```
 
 El proyecto utiliza **aliases** para administrar el ciclo de vida de los modelos.
