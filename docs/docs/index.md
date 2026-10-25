@@ -1,10 +1,7 @@
-# TC5061-Proyecto-Equipo32 documentation!
+# TC5061 — Proyecto MiBici
 
-## Description
+Documentación del Proyecto Integrador de TC5061 — Operaciones de Aprendizaje Automático.
 
-Entrega de la semana 5 con datos de MiBici
+Esta versión corresponde a la implementación individual autorizada de Gerardo Iván Conde Reynoso para la Etapa 2, enfocada en MLflow Project, tracking avanzado, experimentación reproducible y Model Registry.
 
-## Commands
-
-The Makefile contains the central entry points for common tasks related to this project.
-
+Para instrucciones completas de reproducción y resultados, consultar el `README.md` principal del repositorio.
