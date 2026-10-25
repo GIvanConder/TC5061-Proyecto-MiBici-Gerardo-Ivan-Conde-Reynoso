@@ -1,279 +1,599 @@
-# TC5061-Proyecto-Equipo32
-Proyecto integrador de TC5061 (Operaciones de aprendizaje automático): propuesta de solución de ML
-sobre los datos abiertos de [MiBici](https://mibici.net/es/datos-abiertos/), el sistema de bicicleta
-pública del Área Metropolitana de Guadalajara. Datos: ene–dic 2025 (4,532,032 viajes, 484 estaciones).
+# TC5061 — Proyecto MiBici
 
-El proyecto responde tres preguntas de negocio:
+Proyecto integrador de **Operaciones de Aprendizaje Automático (TC5061)** enfocado en la aplicación de prácticas de MLOps sobre los datos abiertos de **MiBici**, sistema de bicicleta pública del Área Metropolitana de Guadalajara.
 
-| # | Pregunta | Tipo de tarea | Usuario |
-|---|----------|---------------|---------|
-| P1 | ¿Cuántos viajes se iniciarán en una estación o zona en un periodo futuro? | Regresión | Operador del sistema (planeación de flota) |
-| P2 | ¿Una estación estará en riesgo de quedarse sin bicicletas o sin anclajes? | Clasificación | Equipo de rebalanceo |
-| P3 | ¿Qué grupos de estaciones comparten patrones de uso y dónde se ubican? | Clustering | Planeación urbana y expansión |
+La solución implementa un flujo reproducible mediante **MLflow Projects, MLflow Tracking y MLflow Model Registry**, manteniendo trazabilidad entre código, datos, experimentos y modelos seleccionados.
 
-El ML Canvas y el diagrama de arquitectura se encuentran en `references/`.
+## Preguntas de negocio
 
-<a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
-    <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
-</a>
+| Pregunta | Objetivo | Tipo de tarea | Usuario |
+|---|---|---|---|
+| P1 | ¿Cuántos viajes se iniciarán en cada estación el día siguiente? | Regresión | Operador del sistema |
+| P2 | ¿Una estación estará en riesgo de quedarse sin bicicletas o sin anclajes en las próximas 2 horas? | Clasificación | Equipo de rebalanceo |
+| P3 | ¿Qué grupos de estaciones comparten patrones de uso y qué tan estables son en el tiempo? | Clustering | Planeación y operación |
 
-Entrega de la semana 5 con datos de MiBici
+Los datos utilizados corresponden a enero-diciembre de 2025 y contienen aproximadamente 4.5 millones de viajes.
 
-## Project Organization
+El ML Canvas y otros materiales de referencia se encuentran en `references/`.
 
-```
-├── LICENSE            <- Open-source license if one is chosen
-├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
-├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
-│
-├── docs               <- A default mkdocs project; see www.mkdocs.org for details
-│
-├── models             <- Trained and serialized models, model predictions, or model summaries
-│
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
-│
-├── pyproject.toml     <- Project configuration file with package metadata for 
-│                         mibici and configuration for tools like black
-│
-├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-│
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
-│
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
-│
-├── setup.cfg          <- Configuration file for flake8
-│
-└── mibici   <- Source code for use in this project.
-    │
-    ├── __init__.py             <- Makes mibici a Python module
-    │
-    ├── config.py               <- Store useful variables and configuration
-    │
-    ├── dataset.py              <- Scripts to download or generate data
-    │
-    ├── features.py             <- Code to create features for modeling
-    │
-    ├── modeling                
-    │   ├── __init__.py 
-    │   ├── p1_regresion.py     <- P1: viajes diarios por estación (baseline + 2 candidatos, MLflow)
-    │   ├── p2_clasificacion.py <- P2: riesgo de quedarse sin bicis/anclajes (MLflow)
-    │   ├── p3_clustering.py    <- P3: clustering de estaciones por patrón de uso (MLflow)
-    │   ├── predict.py          <- Code to run model inference with trained models          
-    │   └── train.py            <- Code to train models
-    │
-    └── plots.py                <- Code to create visualizations
+---
+
+## Estructura principal del proyecto
+
+```text
+.
+├── MLproject
+├── README.md
+├── requirements.txt
+├── python_env.yaml
+├── data/
+│   ├── raw/
+│   ├── interim/
+│   └── processed/
+├── references/
+├── reports/
+├── tests/
+└── mibici/
+    ├── __init__.py
+    ├── config.py
+    ├── dataset.py
+    ├── features.py
+    ├── model_registry.py
+    ├── plots.py
+    └── modeling/
+        ├── __init__.py
+        ├── p1_regresion.py
+        ├── p2_clasificacion.py
+        ├── p3_clustering.py
+        ├── predict.py
+        └── train.py
 ```
 
---------
+La lógica reutilizable se mantiene dentro del paquete `mibici`. Los notebooks se utilizan únicamente para exploración y análisis preliminar.
 
+---
 
-## Reproducibilidad y MLOps
+# Reproducibilidad
 
-El proyecto utiliza una estructura basada en Cookiecutter Data Science. La lógica final se mantiene dentro del paquete `mibici`; los notebooks se reservan para exploración.
+## Requisitos
 
-El entorno fue probado con Python 3.14.4. Las dependencias directas se encuentran fijadas por versión en `requirements.txt`.
-También se verificó la ejecución completa (ingesta, pruebas, P1, P2 y P3) con **Python 3.12.13** desde un clon limpio.
+El proyecto fue desarrollado utilizando Python y dependencias fijadas en `requirements.txt`.
 
-### Instalación
+Se recomienda crear un entorno virtual:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-
-
 ```
 
-La consistencia del entorno puede verificarse con:
+La consistencia del entorno puede comprobarse mediante:
 
 ```bash
 python -m pip check
 ```
 
-### Datos
+---
 
-La ingesta se ejecuta desde el módulo:
+## Reproducción desde un clon limpio
+
+Clonar el repositorio:
 
 ```bash
-python -m mibici.dataset
+git clone https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso.git
+cd TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso
 ```
 
-`dataset.py` descarga los datos públicos de MiBici definidos en `config.py`, genera los archivos procesados y crea `data/manifest.json`.
-
-El manifiesto incluye una `data_version` calculada a partir de los archivos de entrada. Esta versión se registra posteriormente en MLflow para mantener trazabilidad entre datos y experimentos.
-
-Los datos crudos, intermedios y procesados no se versionan en Git.
-
-## Reproducción completa desde un clon limpio
+Crear y activar el entorno:
 
 ```bash
-git clone https://github.com/a01840537/TC5061-Proyecto-Equipo32.git
-cd TC5061-Proyecto-Equipo32
 python -m venv .venv
-source .venv/bin/activate          # Windows (PowerShell): .venv\Scripts\Activate.ps1
+source .venv/bin/activate
 python -m pip install -r requirements.txt
-
-python -m mibici.dataset           # 1. ingesta: data/raw -> data/processed + data/manifest.json
-python -m pytest tests             # 2. pruebas de no fuga de información (P1)
-make train                         # 3. P1, P2 y P3 en el experimento mibici-equipo32
-make mlflow-ui                     # 4. http://localhost:5000
 ```
 
-`make train` equivale a ejecutar `python -m mibici.modeling.p1_regresion`,
-`python -m mibici.modeling.p2_clasificacion` y `python -m mibici.modeling.p3_clustering`.
-La ingesta debe producir `data_version = 7aa5e436d887`; si el valor cambia, los archivos de MiBici
-descargados no son los mismos que se usaron en los experimentos.
+En Windows PowerShell, la activación equivalente es:
 
-**Privacidad.** Los CSV de MiBici incluyen un pseudónimo de usuario, el género y el año de nacimiento.
-Como ninguna pregunta los necesita, `dataset.py` los elimina antes de escribir los Parquet procesados
-(minimización de datos). Los datos se usan con fines académicos citando la fuente (portal de datos
-abiertos de MiBici) y no se redistribuyen en este repositorio.
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
-## P1 — Regresión de viajes diarios por estación
+---
 
-**Pregunta:** ¿cuántos viajes se iniciarán en cada estación el día siguiente? Usuario: operador del
-sistema (planeación de flota y turnos). Granularidad: estación × día; horizonte: 1 día (la predicción
-del día D se emite al cierre de D-1).
+# MLflow Tracking
+
+El proyecto utiliza un servidor local de MLflow respaldado por una base de datos SQLite.
+
+Desde la raíz del repositorio:
 
 ```bash
-python -m mibici.modeling.p1_regresion
+mlflow server \
+  --backend-store-uri sqlite:///mlflow.db \
+  --host 127.0.0.1 \
+  --port 5000
 ```
 
-- **Partición temporal:** TRAIN ene-sep 2025, VAL oct 2025 (selección del modelo), TEST nov-dic 2025.
-- **Variables** (`mibici/features.py`, funciones `p1_*`): calendario del día objetivo (día de la semana,
-  fin de semana, feriado), rezagos de 1, 2, 7 y 14 días, medias móviles de 7 y 28 días que terminan en
-  D-1, promedio del mismo día de las 4 semanas previas, antigüedad y capacidad de la estación.
-  `p1_agregar_features` lanza `LeakageError` si se pide un rezago menor que el horizonte.
-- **Modelos:** baseline ingenuo semanal (`t − 7 días`), candidato lineal `PoissonRegressor`
-  (conteos en `log1p`) y candidato `HistGradientBoostingRegressor` con pérdida Poisson.
-- **Métricas:** `train_/val_/test_` + `mae`, `rmse`, `wape`, `r2`, `sesgo` y `mape_total_dia`.
-- **Runs:** `p1_baseline_naive_semanal`, `p1_candidato_poisson_lineal`, `p1_candidato_hgb_poisson`.
-
-## P2 — Clasificación de riesgo de disponibilidad
-
-**Pregunta:** ¿una estación estará en riesgo de quedarse sin bicicletas o sin anclajes en las próximas
-2 horas? Usuario: equipo de rebalanceo.
+En otra terminal:
 
 ```bash
-python -m mibici.modeling.p2_clasificacion
+export MLFLOW_TRACKING_URI=http://127.0.0.1:5000
 ```
 
-- **Etiqueta:** riesgo si `|neto(t+1 … t+2)| >= 0.4 × capacidad` (`p2_agregar_etiqueta`).
-- **Partición temporal:** TRAIN ene-sep, VAL oct (umbral de decisión que maximiza F1), TEST nov-dic 2025.
-- **Modelos:** baseline regresión logística balanceada y candidato `HistGradientBoostingClassifier`.
-- **Runs:** `p2_baseline_logreg`, `p2_candidato_hgb`.
+La interfaz de MLflow queda disponible en:
 
-## P3 — Clustering de estaciones
+```text
+http://127.0.0.1:5000
+```
 
-La pregunta P3 busca agrupar estaciones de MiBici de acuerdo con sus patrones de uso y evaluar si esos perfiles se mantienen estables en el tiempo.
+Todas las corridas de esta entrega se almacenan en el experimento:
 
-La configuración de P3 se encuentra centralizada en `mibici/config.py`. El pipeline final se ejecuta con:
+```text
+mibici-equipo32
+```
+
+La base `mlflow.db`, los directorios internos de MLflow, los modelos serializados y los datos generados se encuentran excluidos del repositorio mediante `.gitignore`.
+
+---
+
+# MLflow Project
+
+El archivo `MLproject` define tres puntos de entrada:
+
+- `ingest`: ingesta y preparación de datos.
+- `train`: entrenamiento y experimentación para P1, P2 y P3.
+- `register`: registro de los modelos seleccionados en MLflow Model Registry.
+
+## Ingesta
 
 ```bash
-python -m mibici.modeling.p3_clustering
+mlflow run . \
+  -e ingest \
+  --env-manager local
 ```
 
-### Partición temporal
+La ingesta descarga y procesa los datos definidos en `mibici/config.py` y genera:
 
-Para evitar fuga de información se utiliza una separación temporal sin mezcla aleatoria:
+```text
+data/manifest.json
+```
+
+El manifiesto permite identificar la versión exacta de los datos utilizados.
+
+Para los experimentos finales de esta entrega:
+
+```text
+data_version = 7aa5e436d887
+```
+
+---
+
+# P1 — Predicción de demanda
+
+## Objetivo
+
+Predecir cuántos viajes se iniciarán en cada estación al día siguiente.
+
+La granularidad es:
+
+```text
+estación × día
+```
+
+y el horizonte de predicción es de un día.
+
+## Partición temporal
+
+- TRAIN: enero-septiembre de 2025.
+- VALIDATION: octubre de 2025.
+- TEST: noviembre-diciembre de 2025.
+
+Las variables incluyen calendario, capacidad de estación, rezagos y medias históricas construidas únicamente con información disponible antes del día objetivo.
+
+## Experimentación
+
+Se evaluaron:
+
+- baseline ingenuo semanal;
+- PoissonRegressor;
+- HistGradientBoostingRegressor con pérdida Poisson;
+- RandomForestRegressor;
+- búsqueda de hiperparámetros para HGB mediante nested runs.
+
+La búsqueda mantiene TEST fuera del proceso de selección.
+
+## Modelo seleccionado
+
+El modelo seleccionado es:
+
+```text
+PoissonRegressor
+```
+
+Resultados principales:
+
+```text
+VAL MAE  = 5.1038
+TEST MAE = 5.4098
+```
+
+La selección considera el desempeño respecto al baseline, estabilidad y simplicidad del modelo para una variable objetivo de conteo.
+
+## Reproducción del modelo seleccionado
+
+```bash
+mlflow run . \
+  --experiment-name mibici-equipo32 \
+  -e train \
+  -P question=p1 \
+  -P model=poisson \
+  -P params_json='{}' \
+  --env-manager local
+```
+
+---
+
+# P2 — Riesgo de disponibilidad
+
+## Objetivo
+
+Clasificar si una estación estará en riesgo de quedarse sin bicicletas o sin anclajes durante las próximas dos horas.
+
+La condición de riesgo utiliza el movimiento neto futuro relativo a la capacidad de la estación.
+
+## Partición temporal
+
+- TRAIN: enero-septiembre de 2025.
+- VALIDATION: octubre de 2025.
+- TEST: noviembre-diciembre de 2025.
+
+El umbral de decisión se selecciona exclusivamente utilizando VALIDATION.
+
+## Experimentación
+
+Se evaluaron:
+
+- LogisticRegression balanceada como baseline;
+- HistGradientBoostingClassifier;
+- RandomForestClassifier;
+- HistGradientBoostingClassifier tuneado mediante nested runs.
+
+La búsqueda de hiperparámetros utiliza `val_f1` como métrica principal y `val_pr_auc` como criterio secundario.
+
+TEST permanece fuera del proceso de selección.
+
+## Modelo seleccionado
+
+El modelo seleccionado es un HistGradientBoostingClassifier tuneado.
+
+Resultados principales:
+
+```text
+VAL F1         = 0.4691
+VAL PR-AUC     = 0.4869
+
+TEST F1        = 0.4007
+TEST PR-AUC    = 0.3994
+TEST Recall    = 0.4849
+TEST Precision = 0.3414
+```
+
+## Reproducción del modelo seleccionado
+
+```bash
+mlflow run . \
+  --experiment-name mibici-equipo32 \
+  -e train \
+  -P question=p2 \
+  -P model=hgb \
+  -P params_json='{"learning_rate":0.05,"max_iter":350,"max_leaf_nodes":63,"min_samples_leaf":30,"l2_regularization":2.0}' \
+  --env-manager local
+```
+
+---
+
+# P3 — Segmentación de estaciones
+
+## Objetivo
+
+Agrupar estaciones de MiBici de acuerdo con sus patrones de uso y evaluar la estabilidad de dichos grupos en el tiempo.
+
+## Partición temporal
 
 - TRAIN: 1 de enero al 19 de octubre de 2025.
 - TEST: 20 de octubre al 31 de diciembre de 2025.
 - Ventana histórica reducida: 1 de abril al 19 de octubre de 2025.
 
-Los viajes con duración menor a 60 segundos o mayor a 24 horas se excluyen. También se eliminan viajes que cruzan los límites temporales entre TRAIN y TEST.
+Se eliminan viajes con duración inferior a 60 segundos o superior a 24 horas, así como viajes que cruzan los límites temporales definidos.
 
-### Construcción de características
+## Características
 
-El feature engineering se encuentra en `mibici/features.py`.
+Para cada estación se generan 12 variables relacionadas con:
 
-Una estación se considera elegible cuando:
+- intensidad de salidas y llegadas;
+- balance relativo;
+- uso durante fines de semana;
+- distribución temporal de salidas y llegadas durante mañana, mediodía, tarde y noche.
 
-- tiene al menos 30 días de historial;
-- presenta menos de 60 días de inactividad al cierre del periodo.
+Las variables de intensidad utilizan transformación `log1p`.
 
-Para cada estación se generan 12 características de comportamiento relacionadas con intensidad, balance, uso en fin de semana y distribución de salidas y llegadas por bloque horario.
+Posteriormente se utiliza `StandardScaler`, ajustado exclusivamente con TRAIN.
 
-Las variables de intensidad se transforman con `log1p` y posteriormente se aplica `StandardScaler`. El escalador se ajusta exclusivamente con TRAIN.
+## Experimentación
 
-### Comparación de modelos
+Se evaluaron:
 
-El pipeline reproduce tres alternativas:
+- K-Means `k=2` como baseline;
+- K-Means `k=3`;
+- K-Means `k=4`;
+- K-Means `k=5`;
+- Agglomerative Clustering `k=4` como comparación adicional.
 
-- Baseline: K-Means con k=2.
-- Candidato: Agglomerative Clustering con enlace Ward y k=4.
-- Modelo final: K-Means con k=4.
+También se ejecutó una búsqueda mediante nested runs para:
 
-La comparación utiliza Silhouette, Davies-Bouldin y Calinski-Harabasz. Para el modelo final también se evalúa estabilidad temporal mediante ARI, NMI y proporción de estaciones que conservan su cluster.
-
-### MLflow Tracking
-
-Todos los runs del proyecto se registran en el experimento único `mibici-equipo32`;
-la pregunta atendida se distingue mediante tags (`problema: P1/P2/P3`).
-
-Los runs tienen nombres descriptivos:
-
-- `p3_baseline_kmeans_k2`
-- `p3_candidato_agglomerative_k4`
-- `p3_kmeans_final`
-
-Además de los tres runs de P3, el experimento contiene los runs de P1 (`p1_baseline_naive_semanal`,
-`p1_candidato_poisson_lineal`, `p1_candidato_hgb_poisson`) y de P2 (`p2_baseline_logreg`,
-`p2_candidato_hgb`). Todos llevan los tags `equipo = equipo32`, `problema` (P1/P2/P3), `pregunta`,
-`etapa` (baseline/candidato), `git_commit` y `data_version`.
-
-Cada run registra, según corresponda:
-
-- versión de los datos (`data_version`);
-- commit de Git (`git_commit`);
-- pregunta atendida;
-- rango temporal;
-- semilla y modelo;
-- hiperparámetros;
-- reglas de filtrado y elegibilidad;
-- número de características;
-- transformación y escalamiento;
-- métricas diferenciadas por conjunto, como `train_silhouette` y `test_silhouette`.
-
-El run final registra como artefactos el modelo serializado, la visualización PCA, el mapa interactivo, el resultado geográfico y la tabla resumen de clusters.
-
-La interfaz local de MLflow puede iniciarse desde la raíz del repositorio con:
-
-```bash
-mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
+```text
+k = 3, 4, 5, 6
 ```
 
-y consultarse en `http://localhost:5000`.
+La búsqueda utiliza:
 
-## Git y control de versiones
+```text
+train_silhouette
+```
 
-Los datos de MiBici, modelos serializados, base de datos de MLflow, artefactos de MLflow y resultados generados por P3 se excluyen mediante `.gitignore`.
+como criterio principal y:
 
-El código se desarrolla en ramas independientes y todo cambio hacia `main` debe incorporarse mediante Pull Request revisado por otro integrante del equipo.
+```text
+train_davies_bouldin
+```
 
-Convenciones: ramas `feat/`, `fix/`, `docs/` + descripción corta; mensajes de commit
-siguiendo [Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/). La rama
-`main` está protegida; cada integrante abre al menos un PR y revisa al menos uno.
+como criterio secundario.
 
-Para P3 se utiliza la rama `feature/p3-clustering`.
+TEST no participa en la selección.
 
-## Equipo 32
+## Modelo seleccionado
 
-| Integrante | Matrícula | GitHub | Rol |
-|------------|-----------|--------|-----|
-| Rolando Calderón Carballo | A01840537 | `a01840537` | Infraestructura: repo, ingesta reproducible, versionado de datos, configuración |
-| Leydy Johanna Camargo Medina | A01840540 | `JohannaCamargo2805` | P1 — Regresión: demanda de viajes por estación |
-| Manuel Alejandro Cardona Esquivel | A01795954 | `alexcard33` | P2 — Clasificación: riesgo de disponibilidad por estación |
-| Gerardo Iván Conde Reynoso | A01840602 | `GIvanConder` | P3 — Clustering: patrones de uso de estaciones |
+El modelo seleccionado es:
 
-El detalle de qué hizo cada integrante (commits, Pull Requests y revisiones) está en
-[`CONTRIBUCIONES.md`](CONTRIBUCIONES.md).
+```text
+K-Means
+n_clusters = 4
+n_init = 20
+```
+
+Resultados principales:
+
+```text
+TEST Silhouette         = 0.1666
+TEST Davies-Bouldin     = 1.7448
+ARI train-test          = 0.7927
+NMI train-test          = 0.7361
+ARI histórico reducido = 0.9415
+NMI histórico reducido = 0.9167
+```
+
+Aunque el baseline `k=2` presenta mayor Silhouette, `k=4` ofrece mejor Davies-Bouldin, mayor estabilidad temporal e histórica y una segmentación más granular de las estaciones.
+
+## Reproducción del modelo seleccionado
+
+```bash
+mlflow run . \
+  --experiment-name mibici-equipo32 \
+  -e train \
+  -P question=p3 \
+  -P model=kmeans_k4 \
+  -P params_json='{}' \
+  --env-manager local
+```
+
+---
+
+# Nested runs
+
+Las búsquedas de hiperparámetros se organizan mediante corridas anidadas en MLflow.
+
+Cada búsqueda utiliza:
+
+```text
+parent run
+└── child run por combinación
+```
+
+Esto permite comparar configuraciones sin perder el contexto de la búsqueda.
+
+En P3, por ejemplo, la búsqueda queda organizada como:
+
+```text
+p3_busqueda_kmeans
+├── p3_kmeans_trial_01  k=3
+├── p3_kmeans_trial_02  k=4
+├── p3_kmeans_trial_03  k=5
+└── p3_kmeans_trial_04  k=6
+```
+
+La misma estrategia se utiliza para las búsquedas realizadas en P1 y P2.
+
+---
+
+# Artefactos y trazabilidad
+
+Las corridas candidatas registran en MLflow los elementos necesarios para reproducir y analizar los resultados.
+
+Entre los artefactos registrados se encuentran:
+
+- modelo mediante `log_model`;
+- firma del modelo;
+- ejemplo de entrada;
+- manifiesto de datos;
+- configuración resuelta;
+- gráficas de evaluación;
+- resultados auxiliares de cada pregunta.
+
+Los modelos registran además:
+
+```text
+git_commit
+data_version
+question
+model_family
+stage_of_work
+team
+```
+
+## Artefactos de P1
+
+Incluyen, según el modelo:
+
+- métricas;
+- predicciones;
+- MAE por día;
+- comparación de demanda total real contra predicha;
+- importancia de variables.
+
+## Artefactos de P2
+
+Incluyen:
+
+- matriz de confusión;
+- curva precision-recall;
+- reporte de clasificación;
+- configuración;
+- manifiesto de datos.
+
+## Artefactos de P3
+
+Las corridas finales de K-Means registran:
+
+```text
+clusters/
+    *_clusters_train.csv
+    *_perfiles_clusters.csv
+
+plots/
+    *_perfiles_clusters.png
+
+config/
+    p3_resolved_config.json
+
+data/
+    manifest.json
+```
+
+Los perfiles permiten interpretar las características medias que distinguen a cada grupo de estaciones.
+
+---
+
+# Model Registry
+
+Los modelos seleccionados de P1, P2 y P3 se registran mediante el entrypoint:
+
+```bash
+mlflow run . \
+  --experiment-name mibici-equipo32 \
+  -e register \
+  --env-manager local
+```
+
+El proyecto utiliza **aliases** para administrar el ciclo de vida de los modelos.
+
+Se utiliza:
+
+```text
+@champion
+```
+
+para identificar la versión actualmente seleccionada para producción.
+
+Los modelos registrados son:
+
+| Pregunta | Modelo registrado | Versión | Alias |
+|---|---|---:|---|
+| P1 | `mibici-equipo32-p1-demanda` | 1 | `champion` |
+| P2 | `mibici-equipo32-p2-riesgo` | 1 | `champion` |
+| P3 | `mibici-equipo32-p3-grupos` | 1 | `champion` |
+
+Los tres modelos conservan linaje hacia:
+
+- corrida de origen;
+- commit de Git;
+- versión de datos;
+- pregunta atendida.
+
+## Carga de modelos en producción
+
+Los modelos pueden cargarse directamente mediante nombre y alias.
+
+P1:
+
+```text
+models:/mibici-equipo32-p1-demanda@champion
+```
+
+P2:
+
+```text
+models:/mibici-equipo32-p2-riesgo@champion
+```
+
+P3:
+
+```text
+models:/mibici-equipo32-p3-grupos@champion
+```
+
+La carga de los tres modelos fue verificada mediante MLflow como `PyFuncModel`.
+
+---
+
+# Privacidad
+
+Los archivos originales de MiBici contienen algunos atributos que no son necesarios para las preguntas de negocio del proyecto.
+
+Como medida de minimización de datos, dichos atributos se excluyen de los datasets utilizados para modelado.
+
+Los datos se utilizan únicamente con fines académicos y no se redistribuyen mediante este repositorio.
+
+---
+
+# Archivos excluidos del repositorio
+
+El repositorio no versiona:
+
+- datos raw, interim o processed;
+- `mlflow.db`;
+- `mlruns/`;
+- `mlartifacts/`;
+- modelos serializados;
+- resultados temporales o artefactos generados durante entrenamiento.
+
+Estos elementos pueden reconstruirse mediante los comandos documentados anteriormente.
+
+---
+
+# Git y control de versiones
+
+El desarrollo se organizó mediante ramas específicas y Pull Requests.
+
+La secuencia principal de la segunda entrega incluye:
+
+```text
+#1  Infraestructura reproducible con MLflow Projects
+#2  Experimentación avanzada P1
+#3  Experimentación avanzada P2
+#4  Experimentación reproducible P3
+#5  Artefactos visuales y tercer candidato P3
+#6  Model Registry reproducible
+```
+
+Cada cambio funcional se desarrolló fuera de `main` y posteriormente se integró mediante Pull Request.
+
+Debido a una situación particular del equipo, el personal docente autorizó que cada integrante desarrollara y entregara una versión independiente de la actividad. La presente implementación corresponde a la versión individual de Gerardo Iván Conde Reynoso.
+
+---
+
+# Autor
+
+**Gerardo Iván Conde Reynoso**
+
+Maestría en Inteligencia Artificial Aplicada
+Tecnológico de Monterrey
+TC5061 — Operaciones de aprendizaje automático
