@@ -220,3 +220,34 @@ reports/p2/
 
 # Resultados generados por P1 (se registran en MLflow, no en Git)
 reports/p1/
+
+# Actividad 7: protecciones adicionales de seguridad
+
+# Variantes de archivos de entorno
+.env.*
+!.env.example
+
+# Credenciales, claves privadas y certificados
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+*credentials*.json
+client_secret*.json
+
+# Bases de datos locales
+*.db
+*.sqlite
+*.sqlite3
+
+# Modelos serializados fuera de models/
+*.pkl
+*.pickle
+*.joblib
+
+# Configuraciones locales del IDE
+.idea/
