@@ -660,6 +660,86 @@ originales.
 
 ---
 
+# Auditoría básica de seguridad — Actividad 7
+
+## Protección de archivos sensibles
+
+El archivo `.gitignore` excluye datasets, artefactos de MLflow,
+modelos serializados, bases de datos locales, entornos virtuales,
+variantes de `.env`, claves privadas, certificados y configuraciones
+locales del IDE.
+
+Las reglas adicionales se comprobaron con `git check-ignore`.
+No eliminan archivos previamente versionados ni garantizan que
+el historial de Git esté libre de información sensible.
+
+Se realizó una búsqueda heurística de posibles credenciales en
+42 archivos de texto rastreados por Git. No se encontraron
+coincidencias con los patrones evaluados. Esta revisión no equivale
+a un escaneo exhaustivo de secretos ni incluye todo el historial.
+
+## Análisis estático con Bandit
+
+La auditoría utiliza Bandit 1.9.4 en un entorno independiente
+con Python 3.14.4, sin modificar los entornos de MLflow o DeepChecks.
+
+### Instalación
+
+Desde la raíz del repositorio:
+
+```bash
+pyenv install -s 3.14.4
+PY314="$(pyenv prefix 3.14.4)/bin/python"
+SECENV="$HOME/.venvs/mibici-bandit"
+
+"$PY314" -m venv "$SECENV"
+"$SECENV/bin/python" -m pip install -r requirements-security.txt
+"$SECENV/bin/python" -m pip check
+```
+
+### Ejecución
+
+```bash
+SECENV="$HOME/.venvs/mibici-bandit"
+mapfile -d '' ARCHIVOS < <(git ls-files -z -- '*.py')
+
+# Auditoría completa, incluidas las observaciones de severidad baja
+"$SECENV/bin/bandit" "${ARCHIVOS[@]}"
+
+# Comprobación de hallazgos de severidad media y alta
+"$SECENV/bin/bandit" -q -ll "${ARCHIVOS[@]}"
+```
+
+La auditoría completa devuelve un código distinto de cero cuando
+encuentra observaciones, incluso de severidad baja. El segundo
+comando comprueba específicamente las severidades media y alta.
+
+### Resultados verificados
+
+| Indicador | Resultado |
+|---|---|
+| Versión de Bandit | 1.9.4 |
+| Archivos Python examinados | 18 |
+| Líneas de código examinadas | 4 630 |
+| Hallazgos de severidad alta | 0 |
+| Hallazgos de severidad media | 0 |
+| Hallazgos de severidad baja | 38 |
+| B101: `assert` en pruebas PyTest | 21 |
+| B404: importación de `subprocess` | 3 |
+| B603: llamadas a procesos externos | 7 |
+| B607: ejecutable localizado mediante `PATH` | 7 |
+
+Las advertencias B101 corresponden a aserciones esperadas en
+pruebas PyTest. Las B404, B603 y B607 aparecen en los módulos
+de P1, P2 y P3 al ejecutar comandos fijos de Git para registrar
+trazabilidad, sin utilizar `shell=True`. Se conserva el reporte
+de hallazgos; las llamadas no se modificaron durante esta actividad.
+
+La ausencia de observaciones medias y altas bajo esta
+configuración de Bandit no garantiza ausencia de vulnerabilidades.
+
+---
+
 # Git y control de versiones
 
 El desarrollo se organizó mediante ramas específicas y Pull Requests.
