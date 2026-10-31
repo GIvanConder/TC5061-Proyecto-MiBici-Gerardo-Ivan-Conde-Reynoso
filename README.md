@@ -740,6 +740,35 @@ configuración de Bandit no garantiza ausencia de vulnerabilidades.
 
 ---
 
+# Evidencias de ejecución — Actividad 7
+
+Las siguientes capturas corresponden a ejecuciones reales de las
+verificaciones automatizadas y de seguridad del repositorio.
+
+## Pruebas automatizadas con PyTest
+
+Nueve pruebas aprobadas para P1, P2 y P3, incluyendo
+casos límite y reproducibilidad de KMeans.
+
+![Evidencia de PyTest: nueve pruebas aprobadas](docs/evidencias/actividad7/01_pytest.png)
+
+## Calidad e integridad de datos con DeepChecks
+
+Validación de estaciones, integridad de 4 532 032 viajes,
+chequeos sobre una muestra reproducible de 9 200 registros
+y comparación temporal de distribuciones.
+
+![Evidencia de DeepChecks: integridad y drift](docs/evidencias/actividad7/02_deepchecks.png)
+
+## Auditoría de seguridad con Bandit
+
+Análisis de 18 archivos Python: cero hallazgos de severidad
+alta o media y 38 observaciones de severidad baja documentadas.
+
+![Evidencia de seguridad: resultados de Bandit](docs/evidencias/actividad7/03_seguridad.png)
+
+---
+
 # Git y control de versiones
 
 El desarrollo se organizó mediante ramas específicas y Pull Requests.
