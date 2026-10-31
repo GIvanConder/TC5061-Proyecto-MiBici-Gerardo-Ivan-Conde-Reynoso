@@ -564,6 +564,102 @@ Estos elementos pueden reconstruirse mediante los comandos documentados anterior
 
 ---
 
+# Validaciones de calidad de datos — Actividad 7
+
+## DeepChecks e integridad de datos
+
+La auditoría de calidad se implementa en
+`validation/deepchecks_mibici.py`. Incluye controles de integridad
+sobre los datos completos y chequeos de DeepChecks sobre una muestra
+reproducible. No modifica los datasets ni los modelos entrenados.
+
+DeepChecks se ejecuta en un entorno separado con Python 3.10.22,
+debido a sus requisitos de compatibilidad. El entorno principal
+del proyecto y la configuración de MLflow permanecen sin cambios.
+
+### Instalación del entorno
+
+Desde la raíz del repositorio, con `pyenv` disponible:
+
+```bash
+pyenv install -s 3.10.22
+PY310="$(pyenv prefix 3.10.22)/bin/python"
+ENV_DC="$HOME/.venvs/mibici-deepchecks"
+
+"$PY310" -m venv "$ENV_DC"
+"$ENV_DC/bin/python" -m pip install -r requirements-deepchecks.txt
+"$ENV_DC/bin/python" -m pip check
+```
+
+Las dependencias principales están fijadas en
+`requirements-deepchecks.txt`. Las dependencias transitivas no
+constituyen un archivo de bloqueo completo.
+
+### Ejecución
+
+Primero deben estar disponibles los archivos procesados
+`data/processed/viajes.parquet`,
+`data/processed/estaciones.parquet` y `data/manifest.json`,
+obtenidos mediante el proceso de ingesta documentado previamente.
+
+```bash
+ENV_DC="$HOME/.venvs/mibici-deepchecks"
+
+"$ENV_DC/bin/python" -m unittest validation.verificar_reglas -v
+"$ENV_DC/bin/python" -m validation.deepchecks_mibici
+```
+
+El primer comando ejecuta seis pruebas con datos sintéticos:
+cinco anomalías que deben rechazarse y una capacidad cero que
+debe admitirse como advertencia.
+
+El segundo comando comprueba:
+
+- Esquemas, valores faltantes, duplicados y atributos de estaciones.
+- Integridad de todos los viajes, identificadores únicos, fechas
+  invertidas y coincidencia del total con el manifiesto.
+- Nulos y filas duplicadas mediante DeepChecks sobre una muestra
+  determinista por lotes de 100 000 registros y semilla 42.
+- Drift de `duracion_min` y `hora_inicio` entre TRAIN
+  (enero-septiembre de 2025) y TEST (noviembre-diciembre de 2025).
+  Octubre se reserva como VALIDATION y no participa en esta comparación.
+
+### Resultados verificados
+
+Con la versión de datos `7aa5e436d887`:
+
+| Control | Resultado |
+|---|---|
+| Estaciones revisadas | 484 |
+| Valores faltantes y duplicados en estaciones | 0 |
+| Capacidades iguales a cero | 4 (advertencia) |
+| Viajes revisados | 4 532 032 |
+| Nulos, IDs duplicados y fechas invertidas | 0 |
+| Viajes con duración cero | 2 780 (advertencia) |
+| Muestra para DeepChecks | 9 200 viajes |
+| TRAIN / TEST en la muestra | 6 791 / 1 570 |
+| Drift de duración (Kolmogorov-Smirnov) | 0.020886 |
+| Drift de hora (Cramér's V) | 0.000000 |
+| Pruebas de reglas de estaciones | 6 aprobadas |
+
+Las cuatro estaciones con capacidad cero tienen nombres que
+comienzan por `ex-` y no registraron salidas ni llegadas durante
+2025. Se conservan en el catálogo y se reportan como advertencia.
+Los viajes de duración cero también se mantienen en el dataset
+general; P3 aplica su propio filtro de duración.
+
+Los resultados de drift corresponden únicamente a dos variables
+derivadas de los viajes y a una muestra reproducible. Son una
+auditoría retrospectiva de calidad, no una evaluación exhaustiva
+del drift de las características de P1, P2 y P3, ni un procedimiento
+para volver a seleccionar modelos usando TEST.
+
+Los controles verifican la correspondencia del total de viajes
+con el manifiesto, pero no recalculan los SHA-256 de los archivos
+originales.
+
+---
+
 # Git y control de versiones
 
 El desarrollo se organizó mediante ramas específicas y Pull Requests.
