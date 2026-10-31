@@ -750,6 +750,14 @@ verificaciones automatizadas y de seguridad del repositorio.
 Nueve pruebas aprobadas para P1, P2 y P3, incluyendo
 casos límite y reproducibilidad de KMeans.
 
+Para reproducir las nueve pruebas desde la raíz del repositorio,
+utilizar el entorno principal `.venv` descrito en la sección
+de reproducibilidad:
+
+```bash
+./.venv/bin/python -m pytest tests -v
+```
+
 ![Evidencia de PyTest: nueve pruebas aprobadas](docs/evidencias/actividad7/01_pytest.png)
 
 ## Calidad e integridad de datos con DeepChecks
@@ -783,6 +791,13 @@ La secuencia principal de la segunda entrega incluye:
 #5  Artefactos visuales y tercer candidato P3
 #6  Model Registry reproducible
 ```
+
+Para la Actividad 7 se integraron los siguientes cambios:
+
+- [PR #11 — Pruebas PyTest y reproducibilidad](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/11).
+- [PR #12 — Validaciones con DeepChecks](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/12).
+- [PR #13 — Auditoría básica de seguridad](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/13).
+- [PR #14 — Evidencias de ejecución](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/14).
 
 Cada cambio funcional se desarrolló fuera de `main` y posteriormente se integró mediante Pull Request.
 
