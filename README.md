@@ -564,7 +564,9 @@ Estos elementos pueden reconstruirse mediante los comandos documentados anterior
 
 ---
 
-# Validaciones de calidad de datos — Actividad 7
+# Validaciones de calidad de datos — Tercera etapa
+
+**Entrega:** Tests + Chequeos de seguridad básicos integrados al repositorio.
 
 ## DeepChecks e integridad de datos
 
@@ -660,7 +662,7 @@ originales.
 
 ---
 
-# Auditoría básica de seguridad — Actividad 7
+# Auditoría básica de seguridad — Tercera etapa
 
 ## Protección de archivos sensibles
 
@@ -740,7 +742,7 @@ configuración de Bandit no garantiza ausencia de vulnerabilidades.
 
 ---
 
-# Evidencias de ejecución — Actividad 7
+# Evidencias de ejecución — Tercera etapa
 
 Las siguientes capturas corresponden a ejecuciones reales de las
 verificaciones automatizadas y de seguridad del repositorio.
@@ -758,7 +760,7 @@ de reproducibilidad:
 ./.venv/bin/python -m pytest tests -v
 ```
 
-![Evidencia de PyTest: nueve pruebas aprobadas](docs/evidencias/actividad7/01_pytest.png)
+![Evidencia de PyTest: nueve pruebas aprobadas](docs/evidencias/etapa3/01_pytest.png)
 
 ## Calidad e integridad de datos con DeepChecks
 
@@ -766,14 +768,14 @@ Validación de estaciones, integridad de 4 532 032 viajes,
 chequeos sobre una muestra reproducible de 9 200 registros
 y comparación temporal de distribuciones.
 
-![Evidencia de DeepChecks: integridad y drift](docs/evidencias/actividad7/02_deepchecks.png)
+![Evidencia de DeepChecks: integridad y drift](docs/evidencias/etapa3/02_deepchecks.png)
 
 ## Auditoría de seguridad con Bandit
 
 Análisis de 18 archivos Python: cero hallazgos de severidad
 alta o media y 38 observaciones de severidad baja documentadas.
 
-![Evidencia de seguridad: resultados de Bandit](docs/evidencias/actividad7/03_seguridad.png)
+![Evidencia de seguridad: resultados de Bandit](docs/evidencias/etapa3/03_seguridad.png)
 
 ---
 
@@ -792,7 +794,7 @@ La secuencia principal de la segunda entrega incluye:
 #6  Model Registry reproducible
 ```
 
-Para la Actividad 7 se integraron los siguientes cambios:
+Para la tercera etapa se integraron los siguientes cambios:
 
 - [PR #11 — Pruebas PyTest y reproducibilidad](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/11).
 - [PR #12 — Validaciones con DeepChecks](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/12).

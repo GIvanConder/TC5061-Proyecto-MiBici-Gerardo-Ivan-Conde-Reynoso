@@ -221,7 +221,7 @@ reports/p2/
 # Resultados generados por P1 (se registran en MLflow, no en Git)
 reports/p1/
 
-# Actividad 7: protecciones adicionales de seguridad
+# Tercera etapa: protecciones adicionales de seguridad
 
 # Variantes de archivos de entorno
 .env.*
