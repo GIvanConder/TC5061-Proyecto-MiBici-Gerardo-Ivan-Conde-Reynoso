@@ -1,0 +1,9 @@
+# Entorno aislado para validación de datos con Python 3.10.22.
+# No sustituye las dependencias principales de MLflow.
+deepchecks==0.19.1
+numpy==1.26.4
+pandas==2.1.4
+scikit-learn==1.3.2
+category-encoders==2.6.4
+plotly==5.24.1
+pyarrow==19.0.1
