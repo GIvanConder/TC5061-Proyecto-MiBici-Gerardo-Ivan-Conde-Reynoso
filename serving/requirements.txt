@@ -6,7 +6,7 @@ uvicorn==0.54.0
 pydantic==2.14.1
 
 # Dependencias compatibles con el artefacto MLflow P3
-mlflow==3.17.1
+mlflow==3.17.2
 numpy==2.5.4
 pandas==3.0.6
 scikit-learn==1.9.1
