@@ -557,7 +557,7 @@ El repositorio no versiona:
 - `mlflow.db`;
 - `mlruns/`;
 - `mlartifacts/`;
-- modelos serializados;
+- modelos serializados generados durante el entrenamiento, excepto el artefacto P3 versionado en `serving/models/p3/` para su despliegue;
 - resultados temporales o artefactos generados durante entrenamiento.
 
 Estos elementos pueden reconstruirse mediante los comandos documentados anteriormente.
@@ -749,10 +749,12 @@ verificaciones automatizadas y de seguridad del repositorio.
 
 ## Pruebas automatizadas con PyTest
 
-Nueve pruebas aprobadas para P1, P2 y P3, incluyendo
+La captura documenta nueve pruebas aprobadas en la tercera etapa para P1, P2 y P3, incluyendo
 casos límite y reproducibilidad de KMeans.
 
-Para reproducir las nueve pruebas desde la raíz del repositorio,
+Actualmente, la suite incluye 22 pruebas PyTest: las nueve anteriores y 13 pruebas adicionales de la API REST.
+
+Para ejecutar la suite completa desde la raíz del repositorio,
 utilizar el entorno principal `.venv` descrito en la sección
 de reproducibilidad:
 
@@ -779,6 +781,140 @@ alta o media y 38 observaciones de severidad baja documentadas.
 
 ---
 
+# Despliegue de la API REST con FastAPI y Podman
+
+Esta entrega implementa inferencia en tiempo real para el modelo P3
+de clustering de estaciones MiBici.
+
+## Modelo y estrategia
+
+Se recuperó `mibici-equipo32-p3-grupos`, versión 1, desde el Model
+Registry de MLflow mediante `models:/mibici-equipo32-p3-grupos/1`.
+El artefacto descargado se conserva en `serving/models/p3/`.
+
+La imagen contiene FastAPI, las dependencias necesarias y el modelo.
+Por ello, la inferencia y el arranque del contenedor no requieren
+mantener encendido el servidor MLflow.
+
+El endpoint recibe las 12 características ya transformadas y
+estandarizadas. El KMeans registrado no incluye el `StandardScaler`
+entrenado ni la transformación `log1p` aplicada previamente a
+`salidas_dia` y `llegadas_dia`. No deben enviarse directamente
+conteos y proporciones sin ese preprocesamiento.
+
+## Construcción con Podman
+
+Desde la raíz del repositorio:
+
+```bash
+make podman-build-p3
+```
+
+El comando utiliza `podman build --format docker` para conservar
+el `HEALTHCHECK` definido en `serving/Containerfile`.
+
+## Ejecución
+
+```bash
+make podman-run-p3
+```
+
+El servicio se publica en `http://127.0.0.1:8001`.
+Se puede cambiar el puerto del anfitrión, por ejemplo:
+
+```bash
+make podman-run-p3 HOST_PORT=8003
+```
+
+El proceso permanece en primer plano; realizar las peticiones
+desde otra terminal.
+
+## Consumo de la API
+
+```bash
+curl -i http://127.0.0.1:8001/health
+
+curl -i http://127.0.0.1:8001/predict \
+  -H "Content-Type: application/json" \
+  --data-binary @serving/example_request.json
+```
+
+La petición de ejemplo contiene las 12 variables estandarizadas
+del modelo registrado. Respuesta verificada (HTTP 200):
+
+```json
+{
+  "cluster": 3,
+  "model_name": "mibici-equipo32-p3-grupos",
+  "model_version": 1
+}
+```
+
+La API ofrece documentación interactiva en `/docs`. Pydantic
+verifica los campos obligatorios, rechaza variables adicionales
+y evita valores no numéricos o no finitos.
+
+## Validación
+
+Se verificaron 13 pruebas nuevas de la API y 22 pruebas PyTest
+en total, sin fallas. La imagen se construyó con Podman rootless,
+respondió correctamente a cinco peticiones de inferencia y alcanzó
+el estado `healthy`. También se comprobó el reinicio y la predicción
+con el servidor MLflow apagado.
+
+La imagen se ejecuta con un usuario sin privilegios y utiliza
+un `HEALTHCHECK` sobre `/health`.
+
+
+## Evidencia de ejecución con Podman
+
+La siguiente captura corresponde a una ejecución real de la
+API REST dentro del contenedor Podman, utilizando el modelo P3
+registrado en MLflow.
+
+Se verifica el estado `healthy` del contenedor, la respuesta
+HTTP 200 del endpoint `/predict`, la asignación del clúster 3
+y el resultado de la auditoría de dependencias con `pip-audit`.
+
+![Evidencia de la API REST MiBici P3 ejecutándose en Podman](docs/evidencias/api-p3/01_podman_api.png)
+
+## Auditoría de dependencias del servicio
+
+Se utilizó `pip-audit` para revisar las dependencias declaradas
+en `serving/requirements.txt`.
+
+La primera auditoría identificó la vulnerabilidad
+`CVE-2026-53995` en `mlflow==3.17.1`.
+
+Se actualizó la dependencia de ejecución a `mlflow==3.17.2`.
+La auditoría posterior reportó:
+
+```text
+No known vulnerabilities found
+```
+
+Para repetir la auditoría, instalar `pip-audit` en un entorno
+Python independiente y ejecutar:
+
+```bash
+python -m pip_audit -r serving/requirements.txt --progress-spinner off
+```
+
+El artefacto histórico del modelo conserva su declaración original
+de MLflow 3.17.1. Por seguridad, el contenedor utiliza MLflow 3.17.2.
+También se observan advertencias por `psutil`, `pytest` y `rich`,
+que no están instalados en la imagen de producción.
+
+Estas diferencias se documentan sin modificar el artefacto original.
+Con MLflow 3.17.2 se verificaron cinco predicciones idénticas
+a las originales, validación HTTP 422 y estado `healthy`.
+
+La ausencia de vulnerabilidades conocidas en la auditoría no
+garantiza que el servicio esté libre de todos los riesgos.
+
+
+---
+
 # Git y control de versiones
 
 El desarrollo se organizó mediante ramas específicas y Pull Requests.
@@ -800,6 +936,12 @@ Para la tercera etapa se integraron los siguientes cambios:
 - [PR #12 — Validaciones con DeepChecks](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/12).
 - [PR #13 — Auditoría básica de seguridad](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/13).
 - [PR #14 — Evidencias de ejecución](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/14).
+
+Para el despliegue de la API REST se integraron:
+
+- [PR #17 — API REST con FastAPI y pruebas](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/17).
+- [PR #18 — Contenerización con Podman](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/18).
+- [PR #19 — Corrección de seguridad de MLflow](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/pull/19).
 
 Cada cambio funcional se desarrolló fuera de `main` y posteriormente se integró mediante Pull Request.
 
