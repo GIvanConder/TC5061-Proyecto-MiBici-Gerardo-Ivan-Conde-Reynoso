@@ -103,3 +103,15 @@ export PRINT_HELP_PYSCRIPT
 
 help:
 	@$(PYTHON_INTERPRETER) -c "${PRINT_HELP_PYSCRIPT}" < $(MAKEFILE_LIST)
+
+## Construir imagen FastAPI P3 con HEALTHCHECK
+.PHONY: podman-build-p3
+podman-build-p3:
+	podman build --format docker -f serving/Containerfile -t localhost/mibici-p3-api:latest ./serving
+
+## Ejecutar API P3 en Podman (puerto configurable)
+HOST_PORT ?= 8001
+
+.PHONY: podman-run-p3
+podman-run-p3:
+	podman run --rm -p 127.0.0.1:$(HOST_PORT):8000 localhost/mibici-p3-api:latest

@@ -1,0 +1,14 @@
+{
+  "salidas_dia": 0.9150015146702386,
+  "llegadas_dia": 0.9718498548792761,
+  "balance_relativo": 0.4422161924416472,
+  "share_fin_semana": -0.5164137674999764,
+  "salida_manana_share": 0.5990307927474225,
+  "llegada_manana_share": -0.02395248474441813,
+  "salida_mediodia_share": -0.2169345067738634,
+  "llegada_mediodia_share": -0.34548044579456866,
+  "salida_tarde_share": -0.3371225951675635,
+  "llegada_tarde_share": 0.7816694420662277,
+  "salida_noche_share": -0.6774856518197614,
+  "llegada_noche_share": -1.0611175768516499
+}

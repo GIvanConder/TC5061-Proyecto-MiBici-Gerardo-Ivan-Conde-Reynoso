@@ -1,0 +1,31 @@
+# API REST MiBici P3 - imagen compatible con Podman y Docker
+FROM docker.io/library/python:3.14-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# Biblioteca de ejecucion para operaciones numericas
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar dependencias antes de copiar el codigo
+COPY requirements.txt /tmp/requirements.txt
+RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Incorporar API y modelo P3 recuperado desde MLflow
+COPY __init__.py app.py schemas.py /app/serving/
+COPY models/p3/ /app/serving/models/p3/
+
+# Ejecutar el servicio sin privilegios de root
+USER 10001:10001
+
+# Comprobar que FastAPI responde despues de cargar el modelo
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).close()" || exit 1
+
+EXPOSE 8000
+
+CMD ["python", "-m", "uvicorn", "serving.app:app", "--host", "0.0.0.0", "--port", "8000"]
