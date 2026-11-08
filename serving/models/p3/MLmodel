@@ -1,0 +1,43 @@
+artifact_path: mlflow-artifacts:/1/models/m-7918112016fa487f87ac4e87eb31d359/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.14.4
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.1
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.17.1
+model_id: m-7918112016fa487f87ac4e87eb31d359
+model_size_bytes: 18269
+model_uuid: m-7918112016fa487f87ac4e87eb31d359
+prompts: null
+run_id: c30b8d94d8f445e3a8abd1699676bfd9
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "salidas_dia", "required": true}, {"type":
+    "double", "name": "llegadas_dia", "required": true}, {"type": "double", "name":
+    "balance_relativo", "required": true}, {"type": "double", "name": "share_fin_semana",
+    "required": true}, {"type": "double", "name": "salida_manana_share", "required":
+    true}, {"type": "double", "name": "llegada_manana_share", "required": true}, {"type":
+    "double", "name": "salida_mediodia_share", "required": true}, {"type": "double",
+    "name": "llegada_mediodia_share", "required": true}, {"type": "double", "name":
+    "salida_tarde_share", "required": true}, {"type": "double", "name": "llegada_tarde_share",
+    "required": true}, {"type": "double", "name": "salida_noche_share", "required":
+    true}, {"type": "double", "name": "llegada_noche_share", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int32", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-10-24 21:06:30.634731'

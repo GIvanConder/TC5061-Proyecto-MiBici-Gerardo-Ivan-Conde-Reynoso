@@ -1,0 +1,14 @@
+# API REST MiBici P3 - inferencia
+# Modelo registrado: mibici-equipo32-p3-grupos, version 1
+
+fastapi==0.162.0
+uvicorn==0.54.0
+pydantic==2.14.1
+
+# Dependencias compatibles con el artefacto MLflow P3
+mlflow==3.17.1
+numpy==2.5.4
+pandas==3.0.6
+scikit-learn==1.9.1
+scipy==1.18.1
+skops==0.16.0
