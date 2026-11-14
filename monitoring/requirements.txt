@@ -1,0 +1,2 @@
+evidently==0.7.23
+pyarrow==21.0.0

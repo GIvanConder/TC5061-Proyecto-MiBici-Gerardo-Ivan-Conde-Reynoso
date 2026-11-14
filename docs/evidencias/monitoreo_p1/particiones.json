@@ -1,0 +1,39 @@
+{
+  "data_version": "7aa5e436d887",
+  "modelo": "mibici-equipo32-p1-demanda",
+  "version_champion": 1,
+  "referencia": "enero-septiembre 2025",
+  "validacion": "octubre 2025",
+  "actual_evaluacion": "noviembre-diciembre 2025",
+  "variables": [
+    "dia_semana",
+    "fin_semana",
+    "feriado",
+    "lag_1",
+    "lag_2",
+    "lag_7",
+    "lag_14",
+    "media_7d",
+    "media_28d",
+    "media_mismo_dia_4sem",
+    "dias_activa",
+    "capacidad"
+  ],
+  "objetivo": "viajes_real",
+  "filas": {
+    "train": 90230,
+    "val": 11439,
+    "test": 22565
+  },
+  "metadata_original": {
+    "git_commit": "71ca46e40f815b9e0c3f53d0f5d698fbfab68054",
+    "git_sucio": true,
+    "data_version": "7aa5e436d887",
+    "params_datos": {
+      "estaciones_test": 370,
+      "filas_train": 90230,
+      "filas_val": 11439,
+      "filas_test": 22565
+    }
+  }
+}
