@@ -1,0 +1,67 @@
+{
+  "tipo": "comparacion_ab_retrospectiva_pareada",
+  "aleatorizacion_en_produccion": false,
+  "data_version": "7aa5e436d887",
+  "modelo": "mibici-equipo32-p1-demanda",
+  "periodo": "2025-11-01/2025-12-31",
+  "observaciones": 22565,
+  "dias": 61,
+  "champion": {
+    "version": "1",
+    "run_id": "371bf2379bfa4a74b8effbe02d2ee3ae",
+    "metricas": {
+      "mae": 5.409785669092729,
+      "rmse": 9.139357916047876,
+      "wape": 0.1752580860198721,
+      "r2": 0.9234059256035467,
+      "sesgo": 1.3576622703892165
+    }
+  },
+  "challenger": {
+    "version": "2",
+    "run_id": "31ce19ba37554c7399d20de74a0fb31a",
+    "metricas": {
+      "mae": 5.475698580414538,
+      "rmse": 9.266864190946299,
+      "wape": 0.17739343322008663,
+      "r2": 0.9212538376447402,
+      "sesgo": 1.6459399909055803
+    }
+  },
+  "diferencia_mae_champion_menos_challenger": -0.0659129113218091,
+  "mejora_relativa_mae_pct": -1.2184015292580583,
+  "bootstrap": {
+    "ic95_inferior": -0.11399533698400278,
+    "ic95_superior": -0.0205733400971143,
+    "repeticiones": 3000,
+    "bloque_dias": 7,
+    "semilla": 42
+  },
+  "comparacion_mensual": [
+    {
+      "mes": "2025-11",
+      "filas": 11095,
+      "mae_champion": 5.091334525777135,
+      "mae_challenger": 5.108931386531625,
+      "diferencia_mae": -0.017596860754489185,
+      "wape_champion": 0.15257844976297474,
+      "wape_challenger": 0.1531057971059987,
+      "sesgo_champion": 0.06124211740593426,
+      "sesgo_challenger": 0.32773978226181927
+    },
+    {
+      "mes": "2025-12",
+      "filas": 11470,
+      "mae_champion": 5.717825375726251,
+      "mae_challenger": 5.830474693416365,
+      "diferencia_mae": -0.11264931769011355,
+      "wape_champion": 0.20099067137268994,
+      "wape_challenger": 0.20495047435798758,
+      "sesgo_champion": 2.611697283235731,
+      "sesgo_challenger": 2.9210429826146065
+    }
+  ],
+  "dias_con_mejora_challenger": 11,
+  "regla_promocion_cumplida": false,
+  "nota": "Bootstrap de bloques de 7 días, IC aproximado. No equivale a un A/B online aleatorizado. TEST no se utilizó para ajustar hiperparámetros."
+}

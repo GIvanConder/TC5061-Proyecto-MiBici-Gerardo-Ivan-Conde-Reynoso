@@ -1,0 +1,23 @@
+[
+  {
+    "ic95_inferior": -0.1054218201128497,
+    "ic95_superior": -0.02973634937829613,
+    "repeticiones": 3000,
+    "bloque_dias": 3,
+    "semilla": 42
+  },
+  {
+    "ic95_inferior": -0.11399533698400278,
+    "ic95_superior": -0.020573340097113674,
+    "repeticiones": 3000,
+    "bloque_dias": 7,
+    "semilla": 42
+  },
+  {
+    "ic95_inferior": -0.11906560533123353,
+    "ic95_superior": -0.015920710402624733,
+    "repeticiones": 3000,
+    "bloque_dias": 14,
+    "semilla": 42
+  }
+]
