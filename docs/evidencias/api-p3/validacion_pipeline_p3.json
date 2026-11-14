@@ -1,0 +1,36 @@
+{
+  "objetivo": "correccion_preprocesamiento_p3",
+  "modelo": "mibici-equipo32-p3-grupos",
+  "modelo_original_version": 1,
+  "modelo_original_run_id": "c30b8d94d8f445e3a8abd1699676bfd9",
+  "data_version": "7aa5e436d887",
+  "features": [
+    "salidas_dia",
+    "llegadas_dia",
+    "balance_relativo",
+    "share_fin_semana",
+    "salida_manana_share",
+    "llegada_manana_share",
+    "salida_mediodia_share",
+    "llegada_mediodia_share",
+    "salida_tarde_share",
+    "llegada_tarde_share",
+    "salida_noche_share",
+    "llegada_noche_share"
+  ],
+  "filas_train": 367,
+  "filas_test": 367,
+  "scaler_reconstruido_con": "TRAIN exclusivamente",
+  "transformaciones": [
+    "log1p intensidad",
+    "StandardScaler original reconstruido",
+    "KMeans v1 sin reentrenamiento"
+  ],
+  "huella_scaler_sha256": "e4cc9cb71612990a225a587227aa1538543122f2f3c11dd7dce5425545cc2086",
+  "diferencia_maxima_transformacion_train": 0.0,
+  "diferencia_maxima_transformacion_test": 0.0,
+  "coincidencia_etiquetas_train": true,
+  "coincidencia_etiquetas_test": true,
+  "serializacion_mlflow_skops": "verificada",
+  "modelo_reentrenado": false
+}
