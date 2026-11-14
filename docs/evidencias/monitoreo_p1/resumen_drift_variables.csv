@@ -1,0 +1,13 @@
+variable,metodo,umbral,valor_drift
+lag_1,Wasserstein distance (normed),0.1,0.060781660664834154
+lag_2,Wasserstein distance (normed),0.1,0.05613380628582365
+lag_7,Wasserstein distance (normed),0.1,0.02913175954647708
+lag_14,Wasserstein distance (normed),0.1,0.022276765481170725
+media_7d,Wasserstein distance (normed),0.1,0.05101186151579885
+media_28d,Wasserstein distance (normed),0.1,0.030744193615543963
+media_mismo_dia_4sem,Wasserstein distance (normed),0.1,0.025509547453989697
+dias_activa,Wasserstein distance (normed),0.1,2.586527240886659
+capacidad,Wasserstein distance (normed),0.1,0.0013414660126151415
+dia_semana,Jensen-Shannon distance,0.1,0.01855520562545861
+fin_semana,Jensen-Shannon distance,0.1,0.0072433727380198315
+feriado,Jensen-Shannon distance,0.1,0.01765054574673966
