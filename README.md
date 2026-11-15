@@ -506,6 +506,49 @@ Los modelos registrados son:
 | P2 | `mibici-equipo32-p2-riesgo` | 1 | `champion` |
 | P3 | `mibici-equipo32-p3-grupos` | 1 | `champion` |
 
+## Protección de alias del Model Registry
+
+El registro de P1, P2 y P3 es idempotente respecto al alias
+`champion`: únicamente se inicializa cuando está ausente.
+Si ya existe, se conserva su versión actual, aunque sea
+distinta de la versión histórica seleccionada.
+
+Esta protección evita revertir accidentalmente una promoción
+al ejecutar nuevamente el entrypoint `register` del MLflow
+Project. El alias `serving` se administra por separado y no
+es modificado por el registro general.
+
+Para consultar el champion de P3 sin modificar el Registry:
+
+```bash
+./.venv/bin/python -m mibici.registry_aliases \
+  --model mibici-equipo32-p3-grupos
+```
+
+Para simular una eventual promoción de v1 a v2:
+
+```bash
+./.venv/bin/python -m mibici.registry_aliases \
+  --model mibici-equipo32-p3-grupos \
+  --expected-current-version 1 \
+  --to-version 2
+```
+
+El segundo comando es una simulación y no cambia el Registry.
+La modificación efectiva requiere añadir expresamente
+`--confirm`, después de validar el candidato y su contrato
+de entrada. No debe promoverse P3 v2 a `champion` solamente
+porque exista una versión más reciente: v1 y v2 tienen
+contratos de inferencia diferentes.
+
+Las comprobaciones previas a una promoción verifican el alias
+actual y la existencia de la versión de destino. No constituyen
+una transacción atómica ante modificaciones concurrentes;
+las promociones deben ejecutarse bajo control operativo.
+
+Los tags históricos de versiones no reemplazan la consulta
+actual de alias como fuente de verdad del estado del Registry.
+
 Los tres modelos conservan linaje hacia:
 
 - corrida de origen;

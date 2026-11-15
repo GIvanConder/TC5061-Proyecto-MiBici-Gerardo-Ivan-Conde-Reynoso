@@ -7,6 +7,8 @@ import os
 import mlflow
 from mlflow import MlflowClient
 
+from mibici.registry_aliases import asegurar_alias_inicial
+
 
 TRACKING_URI = os.getenv(
     "MLFLOW_TRACKING_URI",
@@ -83,7 +85,7 @@ def registrar_modelo(
     question: str,
     spec: dict,
 ):
-    """Registra una versión, añade linaje y asigna alias champion."""
+    """Registra una versión sin desplazar champion existente."""
 
     registered_name = spec["registered_name"]
     run_id = spec["run_id"]
@@ -141,7 +143,6 @@ def registrar_modelo(
         "git_commit": git_commit,
         "data_version": data_version,
         "lifecycle_scheme": "aliases",
-        "production_alias": ALIAS_PRODUCCION,
         "selection_status": "selected",
     }
 
@@ -171,15 +172,20 @@ def registrar_modelo(
         "aliases",
     )
 
-    client.set_registered_model_alias(
-        name=registered_name,
-        alias=ALIAS_PRODUCCION,
-        version=version.version,
+    estado_alias = asegurar_alias_inicial(
+        client,
+        registered_name,
+        version.version,
+        ALIAS_PRODUCCION,
     )
 
     print(f"Modelo:   {registered_name}")
     print(f"Versión:  {version.version}")
-    print(f"Alias:    @{ALIAS_PRODUCCION}")
+    print(
+        f"Alias:    @{ALIAS_PRODUCCION} "
+        f"-> v{estado_alias['version']} "
+        f"({estado_alias['accion']})"
+    )
     print(f"Run ID:   {run_id}")
     print(f"Commit:   {git_commit}")
     print(f"Datos:    {data_version}")
