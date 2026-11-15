@@ -4,22 +4,22 @@ from pydantic import BaseModel, ConfigDict, Field, FiniteFloat
 
 
 class P3Input(BaseModel):
-    """Caracteristicas ya transformadas y estandarizadas."""
+    """Caracteristicas originales, previas al escalado de P3."""
 
     model_config = ConfigDict(extra="forbid")
 
-    salidas_dia: FiniteFloat
-    llegadas_dia: FiniteFloat
-    balance_relativo: FiniteFloat
-    share_fin_semana: FiniteFloat
-    salida_manana_share: FiniteFloat
-    llegada_manana_share: FiniteFloat
-    salida_mediodia_share: FiniteFloat
-    llegada_mediodia_share: FiniteFloat
-    salida_tarde_share: FiniteFloat
-    llegada_tarde_share: FiniteFloat
-    salida_noche_share: FiniteFloat
-    llegada_noche_share: FiniteFloat
+    salidas_dia: FiniteFloat = Field(ge=0)
+    llegadas_dia: FiniteFloat = Field(ge=0)
+    balance_relativo: FiniteFloat = Field(ge=-1, le=1)
+    share_fin_semana: FiniteFloat = Field(ge=0, le=1)
+    salida_manana_share: FiniteFloat = Field(ge=0, le=1)
+    llegada_manana_share: FiniteFloat = Field(ge=0, le=1)
+    salida_mediodia_share: FiniteFloat = Field(ge=0, le=1)
+    llegada_mediodia_share: FiniteFloat = Field(ge=0, le=1)
+    salida_tarde_share: FiniteFloat = Field(ge=0, le=1)
+    llegada_tarde_share: FiniteFloat = Field(ge=0, le=1)
+    salida_noche_share: FiniteFloat = Field(ge=0, le=1)
+    llegada_noche_share: FiniteFloat = Field(ge=0, le=1)
 
 
 class P3Prediction(BaseModel):

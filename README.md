@@ -752,7 +752,7 @@ verificaciones automatizadas y de seguridad del repositorio.
 La captura documenta nueve pruebas aprobadas en la tercera etapa para P1, P2 y P3, incluyendo
 casos límite y reproducibilidad de KMeans.
 
-Actualmente, la suite incluye 22 pruebas PyTest: las nueve anteriores y 13 pruebas adicionales de la API REST.
+La suite se ha ampliado con pruebas de monitoreo, comparación de modelos, integridad del Registry y validación del servicio P3.
 
 Para ejecutar la suite completa desde la raíz del repositorio,
 utilizar el entorno principal `.venv` descrito en la sección
@@ -783,100 +783,149 @@ alta o media y 38 observaciones de severidad baja documentadas.
 
 # Despliegue de la API REST con FastAPI y Podman
 
-Esta entrega implementa inferencia en tiempo real para el modelo P3
-de clustering de estaciones MiBici.
+## Estrategia de inferencia y modelo
 
-## Modelo y estrategia
+La API utiliza `mibici-equipo32-p3-grupos` desde MLflow
+Model Registry. El alias `champion` conserva la versión
+histórica v1, mientras que `serving` identifica la versión
+con el Pipeline completo de preprocesamiento.
 
-Se recuperó `mibici-equipo32-p3-grupos`, versión 1, desde el Model
-Registry de MLflow mediante `models:/mibici-equipo32-p3-grupos/1`.
-El artefacto descargado se conserva en `serving/models/p3/`.
+P3 v2 incluye `log1p`, el `StandardScaler` reconstruido
+exclusivamente con TRAIN y el K-Means histórico sin
+reentrenamiento. Se verificó equivalencia de transformaciones
+y asignaciones de clusters entre ambas implementaciones.
 
-La imagen contiene FastAPI, las dependencias necesarias y el modelo.
-Por ello, la inferencia y el arranque del contenedor no requieren
-mantener encendido el servidor MLflow.
+La API recibe las 12 características originales de cada
+estación. Los conteos de salidas y llegadas deben ser no
+negativos, las proporciones deben estar entre 0 y 1 y
+el balance relativo entre -1 y 1. El cliente no debe
+preescalar las características.
 
-El endpoint recibe las 12 características ya transformadas y
-estandarizadas. El KMeans registrado no incluye el `StandardScaler`
-entrenado ni la transformación `log1p` aplicada previamente a
-`salidas_dia` y `llegadas_dia`. No deben enviarse directamente
-conteos y proporciones sin ese preprocesamiento.
+### Inferencia bajo demanda frente a batch
 
-## Construcción con Podman
+El endpoint REST permite clasificar una estación cuando
+otra aplicación necesita consultar su segmento de manera
+inmediata, a partir de características ya calculadas.
 
-Desde la raíz del repositorio:
+Para clasificar periódicamente todas las estaciones, el
+procesamiento batch es más apropiado: permite calcular
+agregados, validar su integridad y ejecutar predicciones
+en conjunto, sin realizar numerosas llamadas individuales.
+
+La API demuestra capacidad de inferencia bajo demanda;
+no implica que las características de uso se calculen
+en tiempo real ni que se haya desplegado un pipeline
+de datos en streaming.
+
+## Recuperación reproducible desde MLflow
+
+Con el Tracking Server y sus artefactos originales
+disponibles en `http://127.0.0.1:5000`:
+
+```bash
+./.venv/bin/python -m serving.descargar_modelo_p3 \
+  --model-name mibici-equipo32-p3-grupos \
+  --alias serving \
+  --tracking-uri http://127.0.0.1:5000
+```
+
+El script consulta la versión real asociada al alias,
+descarga los archivos, verifica la equivalencia de
+predicciones y registra sus metadatos y huellas SHA-256
+en `serving/models/p3/deployment_metadata.json`.
+
+El nombre y la versión no se fijan en `serving/app.py`.
+El arranque comprueba metadatos e integridad; la
+inferencia no requiere conexión activa a MLflow.
+
+El script necesita acceso al Registry local histórico.
+Un clon público del repositorio no contiene por sí solo
+`mlflow.db` ni los artefactos originales del servidor.
+
+## Construcción directa con Podman
+
+Desde la raíz del repositorio, después de preparar
+el artefacto local:
+
+```bash
+podman build --format docker \
+  -f serving/Containerfile \
+  -t localhost/mibici-p3-api:latest ./serving
+```
+
+Alternativamente:
 
 ```bash
 make podman-build-p3
 ```
 
-El comando utiliza `podman build --format docker` para conservar
-el `HEALTHCHECK` definido en `serving/Containerfile`.
+El formato Docker conserva el HEALTHCHECK del
+Containerfile. El proceso utiliza un usuario sin
+privilegios dentro del contenedor.
 
-## Ejecución
+## Ejecución directa
+
+```bash
+podman run --rm \
+  -p 127.0.0.1:8001:8000 \
+  localhost/mibici-p3-api:latest
+```
+
+Equivalente con Makefile:
 
 ```bash
 make podman-run-p3
 ```
 
-El servicio se publica en `http://127.0.0.1:8001`.
-Se puede cambiar el puerto del anfitrión, por ejemplo:
+Para utilizar otro puerto del anfitrión:
 
 ```bash
 make podman-run-p3 HOST_PORT=8003
 ```
 
-El proceso permanece en primer plano; realizar las peticiones
-desde otra terminal.
+## Consulta y verificación de la API
 
-## Consumo de la API
+Desde otra terminal:
 
 ```bash
 curl -i http://127.0.0.1:8001/health
 
-curl -i http://127.0.0.1:8001/predict \
+curl -i -X POST http://127.0.0.1:8001/predict \
   -H "Content-Type: application/json" \
   --data-binary @serving/example_request.json
 ```
 
-La petición de ejemplo contiene las 12 variables estandarizadas
-del modelo registrado. Respuesta verificada (HTTP 200):
+El ejemplo JSON procede del artefacto registrado y
+contiene características originales. La versión de
+`/health` y `/predict` procede de los metadatos del
+modelo realmente cargado.
 
-```json
-{
-  "cluster": 3,
-  "model_name": "mibici-equipo32-p3-grupos",
-  "model_version": 1
-}
+La documentación OpenAPI está disponible en `/docs`.
+Pydantic rechaza campos desconocidos, entradas
+incompletas, valores no finitos y proporciones fuera
+de sus intervalos permitidos.
+
+## Validación y evidencias
+
+La suite PyTest verifica el comportamiento de la API,
+los clusters históricos, el contrato de entrada,
+los metadatos y la integridad de archivos.
+
+```bash
+./.venv/bin/python -m pytest tests -q
 ```
 
-La API ofrece documentación interactiva en `/docs`. Pydantic
-verifica los campos obligatorios, rechaza variables adicionales
-y evita valores no numéricos o no finitos.
+La validación actual del contenedor y los metadatos
+del despliegue se documentan en:
 
-## Validación
+`docs/evidencias/api-p3/validacion_api_registry_v2.json`
 
-Se verificaron 13 pruebas nuevas de la API y 22 pruebas PyTest
-en total, sin fallas. La imagen se construyó con Podman rootless,
-respondió correctamente a cinco peticiones de inferencia y alcanzó
-el estado `healthy`. También se comprobó el reinicio y la predicción
-con el servidor MLflow apagado.
+La captura `docs/evidencias/api-p3/01_podman_api.png`
+corresponde a la evidencia histórica del despliegue v1.
+No se presenta como captura de la versión corregida.
 
-La imagen se ejecuta con un usuario sin privilegios y utiliza
-un `HEALTHCHECK` sobre `/health`.
-
-
-## Evidencia de ejecución con Podman
-
-La siguiente captura corresponde a una ejecución real de la
-API REST dentro del contenedor Podman, utilizando el modelo P3
-registrado en MLflow.
-
-Se verifica el estado `healthy` del contenedor, la respuesta
-HTTP 200 del endpoint `/predict`, la asignación del clúster 3
-y el resultado de la auditoría de dependencias con `pip-audit`.
-
-![Evidencia de la API REST MiBici P3 ejecutándose en Podman](docs/evidencias/api-p3/01_podman_api.png)
+La versión corregida se valida sobre el Pipeline v2
+sin alterar el alias `champion` ni sus resultados.
 
 ## Auditoría de dependencias del servicio
 

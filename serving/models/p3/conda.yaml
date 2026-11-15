@@ -4,7 +4,7 @@ dependencies:
 - python=3.14.4
 - pip<=26.2.1
 - pip:
-  - mlflow==3.17.1
+  - mlflow==3.17.2
   - numpy==2.5.4
   - pandas==3.0.6
   - psutil==7.2.2

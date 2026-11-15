@@ -1,0 +1,32 @@
+{
+  "modelo": "mibici-equipo32-p3-grupos",
+  "version": 2,
+  "alias_origen": "serving",
+  "run_id": "72a306c654714c35b9e1b73a0b4a784d",
+  "git_commit_modelo": "0b034b78e75dbd733f5f1c14a748286b0ee2ddcf",
+  "entrada": "caracteristicas_originales",
+  "health_status": 200,
+  "health": {
+    "status": "ok",
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  },
+  "predict_status": 200,
+  "prediction": {
+    "cluster": 3,
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  },
+  "cluster_modelo_local": 3,
+  "equivalencia_endpoint_modelo": true,
+  "rechazos_http_422": {
+    "salidas_negativas": 422,
+    "proporcion_invalida": 422,
+    "variable_no_numerica": 422
+  },
+  "contenedor": "podman",
+  "image_tag": "localhost/mibici-p3-api:corregida",
+  "healthcheck_configurado": true,
+  "healthcheck_manual": "aprobado",
+  "healthcheck_estado_verificado": "healthy"
+}

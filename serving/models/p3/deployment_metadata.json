@@ -1,0 +1,36 @@
+{
+  "model_name": "mibici-equipo32-p3-grupos",
+  "model_version": 2,
+  "model_alias": "serving",
+  "model_uri": "models:/mibici-equipo32-p3-grupos/2",
+  "run_id": "72a306c654714c35b9e1b73a0b4a784d",
+  "source": "models:/m-0a39cbba14e4464b95225e1e3d3392ff",
+  "git_commit": "0b034b78e75dbd733f5f1c14a748286b0ee2ddcf",
+  "base_run_id": "c30b8d94d8f445e3a8abd1699676bfd9",
+  "input_semantics": "raw_p3_features",
+  "training_fingerprint": "e4cc9cb71612990a225a587227aa1538543122f2f3c11dd7dce5425545cc2086",
+  "feature_names": [
+    "salidas_dia",
+    "llegadas_dia",
+    "balance_relativo",
+    "share_fin_semana",
+    "salida_manana_share",
+    "llegada_manana_share",
+    "salida_mediodia_share",
+    "llegada_mediodia_share",
+    "salida_tarde_share",
+    "llegada_tarde_share",
+    "salida_noche_share",
+    "llegada_noche_share"
+  ],
+  "file_sha256": {
+    "MLmodel": "48334d0191ce6b5b4cb63c55a995e82214e1584ca3916fc9398ce66950da9fc3",
+    "conda.yaml": "4a6b08e78f4ce4e9d6941e91059883ac85d480ae266030b16b38b9c661ad9540",
+    "input_example.json": "39f26790c801cda42fbe18de5124c5a1bdc8f1bf250db856fd0e281ee9b66647",
+    "model.skops": "f2b6bb0d13ccb7a3de293dd8e69dbc18ac82e4bc08cde3c10aa5c540db0146cf",
+    "python_env.yaml": "d02d75b7b85810c0cfc5f6c3d7f51353abc21806accb3ce343cc8b5c5f91ace4",
+    "registered_model_meta": "6ffe1a3c7c7d7884d4f0c9a4f6473314c2b8b42236cb332b10e4debbf144a602",
+    "requirements.txt": "ca13e775e7d95608ed86016816bccc5bee941ead2dac9f3307433b8392b492f5",
+    "serving_input_example.json": "bdc9b3855018f45dda8364e2340fae715cf1c1ccd5c4589dceb2378593eae2c7"
+  }
+}
