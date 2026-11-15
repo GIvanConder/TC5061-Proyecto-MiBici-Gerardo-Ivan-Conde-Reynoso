@@ -38,7 +38,7 @@ def test_health(client):
 
     assert respuesta.status_code == 200
     assert respuesta.json()["status"] == "ok"
-    assert respuesta.json()["model_version"] == 1
+    assert respuesta.json()["model_version"] == app.state.metadata["model_version"]
 
 
 @pytest.mark.parametrize(
@@ -51,8 +51,8 @@ def test_predicciones_mlflow(client, ejemplos, indice, esperado):
     assert respuesta.status_code == 200
     assert respuesta.json() == {
         "cluster": esperado,
-        "model_name": "mibici-equipo32-p3-grupos",
-        "model_version": 1,
+        "model_name": app.state.metadata["model_name"],
+        "model_version": app.state.metadata["model_version"],
     }
 
 

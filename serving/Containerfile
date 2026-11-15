@@ -17,7 +17,7 @@ COPY requirements.txt /tmp/requirements.txt
 RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Incorporar API y modelo P3 recuperado desde MLflow
-COPY __init__.py app.py schemas.py /app/serving/
+COPY __init__.py app.py schemas.py descargar_modelo_p3.py /app/serving/
 COPY models/p3/ /app/serving/models/p3/
 
 # Ejecutar el servicio sin privilegios de root

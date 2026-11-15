@@ -1,5 +1,5 @@
 # API REST MiBici P3 - inferencia
-# Modelo registrado: mibici-equipo32-p3-grupos, version 1
+# Version de despliegue obtenida de deployment_metadata.json
 
 fastapi==0.162.0
 uvicorn==0.54.0
