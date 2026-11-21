@@ -1,0 +1,19 @@
+[2026-11-20 22:53:25,187] LAPTOP-GOCNQSSK/INFO/locust.main: Starting Locust 2.47.0
+[2026-11-20 22:53:25,187] LAPTOP-GOCNQSSK/INFO/locust.main: Run time limit set to 180 seconds
+[2026-11-20 22:53:25,188] LAPTOP-GOCNQSSK/INFO/locust.runners: Ramping to 20 users at a rate of 10.00 per second
+[2026-11-20 22:53:26,189] LAPTOP-GOCNQSSK/INFO/locust.runners: All users spawned: {"UsuarioMiBici": 20} (20 total users)
+[2026-11-20 22:56:25,007] LAPTOP-GOCNQSSK/INFO/locust.main: --run-time limit reached, shutting down
+[2026-11-20 22:56:25,064] LAPTOP-GOCNQSSK/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+POST     /predict                                                                       16989     0(0.00%) |     10       5      74      8 |   94.47        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                     16989     0(0.00%) |     10       5      74      8 |   94.47        0.00
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+POST     /predict                                                                                8     10     13     14     18     23     30     36     61     71     75  16989
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                              8     10     13     14     18     23     30     36     61     71     75  16989
+

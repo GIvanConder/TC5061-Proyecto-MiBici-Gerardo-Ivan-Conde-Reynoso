@@ -1,0 +1,4 @@
+escenario,usuarios,solicitudes,exitos,fallos,tasa_error_pct,rps,rps_exitosas,latencia_media_ms,p50_ms,p95_ms,p99_ms,solicitudes_csv_periodico,fuente_metricas,duracion_programada_s,duracion_observada_s
+baja,5,2888,2888,0,0.000000,24.109981,24.109981,7.671750,7,12,15,2871,JSON final de Locust,120,120.275000
+media,20,16989,16989,0,0.000000,94.469008,94.469008,10.575635,8,23,36,16926,JSON final de Locust,180,180.605000
+alta,50,32479,32479,0,0.000000,180.559097,180.559097,73.228450,67,170,210,32356,JSON final de Locust,180,180.283000
