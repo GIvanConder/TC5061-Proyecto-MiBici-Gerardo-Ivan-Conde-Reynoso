@@ -1048,3 +1048,59 @@ Debido a una situación particular del equipo, el personal docente autorizó que
 Maestría en Inteligencia Artificial Aplicada
 Tecnológico de Monterrey
 TC5061 — Operaciones de aprendizaje automático
+
+---
+
+## Entregable 7 - Microservicios, CI/CD y FinOps
+
+La arquitectura operacional incorpora Docker Compose compatible
+con Podman, FastAPI y un servidor MLflow independiente.
+
+### Iniciar el sistema
+
+Desde la raiz del repositorio, con Podman 5.7 y un proveedor
+Compose compatible:
+
+    export PODMAN_COMPOSE_PROVIDER="$HOME/.local/share/mibici-tools/podman-compose/bin/podman-compose"
+    podman compose -f docker-compose.yml up -d --build
+
+El archivo `.env.example` documenta los puertos configurables.
+
+### Comprobar servicios
+
+    podman compose -f docker-compose.yml ps
+    curl -f http://127.0.0.1:8000/health
+    curl -f http://127.0.0.1:5000/health
+    .venv/bin/python scripts/validar_compose.py
+
+### Detener
+
+    podman compose -f docker-compose.yml down
+
+No utilizar `down -v` si se necesita conservar el almacenamiento
+persistente de MLflow.
+
+### Modelo de inferencia
+
+La API carga el Pipeline P3 v2 desde el artefacto local preparado
+originalmente a partir del Registry y protegido por SHA-256.
+
+El MLflow levantado por Compose utiliza una base SQLite y un
+almacenamiento nuevos, aislados del historial original. No contiene
+automaticamente los experimentos y modelos registrados previamente.
+
+La API no requiere comunicarse con MLflow en cada prediccion.
+
+### Evidencias
+
+Consultar:
+
+`docs/evidencias/operacion_finops/README_compose.md`
+
+`docs/evidencias/operacion_finops/validacion_compose.json`
+
+La validacion compara la prediccion HTTP contra la del modelo
+local sin modificar el modelo ni sus alias.
+
+Las secciones de GitHub Actions, Locust y FinOps se incorporaran
+en los siguientes incrementos del Entregable 7.
