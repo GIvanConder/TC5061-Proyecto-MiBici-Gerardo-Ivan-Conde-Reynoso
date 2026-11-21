@@ -1130,5 +1130,36 @@ Consultar la documentacion adicional:
 
 `docs/evidencias/operacion_finops/README_ci_cd.md`
 
-Las secciones de Locust y FinOps se incorporaran
-en el siguiente incremento del Entregable 7.
+### Pruebas de carga y FinOps
+
+Locust evalua POST /predict con perfiles sinteticos
+validados contra el Pipeline P3 v2.
+
+Se compararon configuraciones de uno y dos workers
+mediante escenarios de 5, 20 y 50 usuarios concurrentes,
+registrando rendimiento, latencia, errores, CPU y RAM.
+
+Configurar el numero de workers mediante la variable
+MIBICI_API_WORKERS, cuyo valor predeterminado es 1.
+
+Para consultar la metodologia, reproduccion y evidencias:
+
+`docs/evidencias/operacion_finops/README_locust_finops.md`
+
+Los resultados originales se encuentran en:
+
+`docs/evidencias/operacion_finops/locust/`
+
+Regenerar el analisis economico:
+
+    .venv/bin/python scripts/analizar_finops.py
+
+Las tarifas, escenarios economicos, analisis de sensibilidad
+y graficas se encuentran en:
+
+`docs/evidencias/operacion_finops/finops/`
+
+El costo por inferencia es una estimacion basada en
+mediciones locales y precios publicos de nube.
+
+No constituye una factura ni un benchmark ejecutado en AWS.

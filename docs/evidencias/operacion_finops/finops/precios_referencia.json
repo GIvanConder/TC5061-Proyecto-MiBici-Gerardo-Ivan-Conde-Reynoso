@@ -1,0 +1,32 @@
+{
+  "proveedor": "Amazon Web Services",
+  "servicio": "Amazon Lightsail",
+  "modalidad": "Linux Unix Compute Optimized con IPv4 publica",
+  "fecha_consulta": "2026-11-20",
+  "moneda": "USD",
+  "region_referencia": "US East (N. Virginia)",
+  "alcance_precio": "Tarifa publica de referencia del paquete; verificar disponibilidad regional antes de contratar",
+  "fuentes": [
+    "https://aws.amazon.com/lightsail/pricing/",
+    "https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-bundles.html",
+    "https://aws.amazon.com/about-aws/whats-new/2026/04/lightsail-compute-optimized-instances/"
+  ],
+  "paquetes": [
+    {
+      "nombre": "Compute-optimized Large-4GB",
+      "vcpu": 2,
+      "ram_gb": 4,
+      "ssd_gb": 160,
+      "transferencia_tb": 5,
+      "precio_usd_mes": 42
+    },
+    {
+      "nombre": "Compute-optimized Xlarge-8GB",
+      "vcpu": 4,
+      "ram_gb": 8,
+      "ssd_gb": 320,
+      "transferencia_tb": 6,
+      "precio_usd_mes": 84
+    }
+  ]
+}

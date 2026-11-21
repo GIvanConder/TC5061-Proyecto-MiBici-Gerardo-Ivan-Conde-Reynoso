@@ -1,0 +1,2 @@
+# Dependencias aisladas para las pruebas de carga
+locust==2.47.0
