@@ -1,6 +1,6 @@
 # TC5061 — Proyecto MiBici
 
-## Guía rápida del Entregable 7
+## Guía rápida: Construye | Microservicios, CI/CD y FinOps
 
 Esta sección concentra las instrucciones para evaluar
 la arquitectura de microservicios, CI/CD, pruebas de carga
@@ -136,7 +136,7 @@ el almacenamiento persistente de MLflow.
 | Reproducibilidad | [Script de auditoría](scripts/auditar_reproducibilidad.py) |
 | Contribuciones | [Historial documentado](CONTRIBUCIONES.md) |
 
-[Consultar la documentación completa del Entregable 7](#entregable-7---microservicios-cicd-y-finops).
+[Consultar la documentación completa de la actividad «Construye | Microservicios, CI/CD y FinOps»](#construye--microservicios-cicd-y-finops).
 
 Los costos FinOps son proyecciones basadas en mediciones
 locales y tarifas públicas. No representan facturación real
@@ -1195,7 +1195,7 @@ TC5061 — Operaciones de aprendizaje automático
 
 ---
 
-## Entregable 7 - Microservicios, CI/CD y FinOps
+## Construye | Microservicios, CI/CD y FinOps
 
 ### Resultados principales
 
