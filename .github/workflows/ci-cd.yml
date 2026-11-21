@@ -61,6 +61,14 @@ jobs:
             --junitxml=ci-evidence/pytest.xml \
             | tee ci-evidence/pytest.txt
 
+      - name: Audit experimental reproducibility
+        run: |
+          mkdir -p ci-evidence
+          set -o pipefail
+          python scripts/auditar_reproducibilidad.py \
+            --output ci-evidence/reproducibilidad.json \
+            | tee ci-evidence/reproducibilidad.txt
+
       - name: Validate Docker Compose
         run: |
           docker version

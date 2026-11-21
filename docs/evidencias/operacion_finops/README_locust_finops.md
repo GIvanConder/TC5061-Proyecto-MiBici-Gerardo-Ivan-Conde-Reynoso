@@ -137,3 +137,43 @@ No se desplego ni contrato infraestructura comercial.
 - https://docs.podman.io/en/latest/markdown/podman-stats.1.html
 - https://www.finops.org/wg/finops-for-ai-overview/
 - https://aws.amazon.com/lightsail/pricing/
+
+## Auditoria automatizada de resultados historicos
+
+Desde la raiz del repositorio:
+
+    .venv/bin/python scripts/auditar_reproducibilidad.py
+
+La auditoria regenera ocho tablas y dieciseis graficas
+en una copia temporal extraida de Git.
+
+Se comparan los valores de las tablas con las evidencias
+versionadas. La validacion de graficas comprueba su
+generacion y existencia, no equivalencia visual pixel a pixel.
+
+No se necesitan contenedores activos ni repetir Locust
+para esta auditoria historica.
+
+Para repetir las mediciones de carga se utiliza
+Podman Compose, el puerto predeterminado 8000 y
+los nombres de contenedor del proyecto mibici-finops.
+
+Los CSV y logs experimentales nuevos pueden estar
+excluidos por las reglas generales de .gitignore.
+Incorporarlos selectivamente cuando deban conservarse
+como evidencias, sin versionar datasets originales.
+
+## Limitaciones experimentales
+
+Los escenarios representan una ejecucion por configuracion.
+No se calcularon intervalos de confianza entre repeticiones.
+
+El rendimiento incluye la comunicacion HTTP local y
+el procesamiento de caracteristicas ya calculadas.
+
+No se midio la generacion de caracteristicas desde viajes
+originales ni se evaluo el rendimiento en infraestructura AWS.
+
+Para clasificacion periodica de estaciones, el procesamiento
+batch puede ser mas eficiente que las solicitudes individuales.
+La API resulta apropiada para consultas bajo demanda.
