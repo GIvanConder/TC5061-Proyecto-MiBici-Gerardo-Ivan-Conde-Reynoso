@@ -1,0 +1,15 @@
+{
+  "modelo": "mibici-equipo32-p3-grupos",
+  "version": 2,
+  "api_health_http": 200,
+  "mlflow_health_http": 200,
+  "predict_http": 200,
+  "respuesta": {
+    "cluster": 3,
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  },
+  "cluster_local": 3,
+  "equivalencia": true,
+  "resultado": "APROBADO"
+}
