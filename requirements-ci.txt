@@ -1,0 +1,4 @@
+# Dependencias reproducibles para pruebas y CI/CD
+-r requirements.txt
+-r serving/requirements.txt
+httpx==0.28.1

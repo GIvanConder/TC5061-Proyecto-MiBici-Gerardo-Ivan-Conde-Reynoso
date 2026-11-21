@@ -1,0 +1,19 @@
+{
+  "fecha_utc": "2026-11-21T04:19:37.136548+00:00",
+  "rama": "feat/entregable7-ci-cd",
+  "commit_base": "9e20d76e2147591c6b9e8be5762c433b0572a8fd",
+  "entorno": "clon temporal independiente",
+  "pytest": {
+    "tests": 69,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 69
+  },
+  "modelo": "mibici-equipo32-p3-grupos",
+  "version": 2,
+  "run_id": "72a306c654714c35b9e1b73a0b4a784d",
+  "conectividad_interna_http": 200,
+  "validacion_local": "APROBADA",
+  "github_actions": "PENDIENTE_VALIDACION_REMOTA"
+}
