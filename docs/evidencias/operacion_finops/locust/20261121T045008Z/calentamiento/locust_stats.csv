@@ -1,0 +1,3 @@
+Type,Name,Request Count,Failure Count,Median Response Time,Average Response Time,Min Response Time,Max Response Time,Average Content Size,Requests/s,Failures/s,50%,66%,75%,80%,90%,95%,98%,99%,99.9%,99.99%,100%
+POST,/predict,274,0,7,7.558119580299339,6.541604000176449,39.61343899982239,72.0,9.456491792116553,0.0,7,8,8,8,8,8,8,8,40,40,40
+,Aggregated,274,0,7,7.558119580299339,6.541604000176449,39.61343899982239,72.0,9.456491792116553,0.0,7,8,8,8,8,8,8,8,40,40,40

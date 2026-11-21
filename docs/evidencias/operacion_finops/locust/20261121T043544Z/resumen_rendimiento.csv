@@ -1,0 +1,4 @@
+escenario,usuarios,solicitudes,exitos,fallos,tasa_error_pct,rps,rps_exitosas,latencia_media_ms,p50_ms,p95_ms,p99_ms,solicitudes_csv_periodico,fuente_metricas,duracion_programada_s,duracion_observada_s
+baja,5,2891,2891,0,0.000000,24.130000,24.130000,9.000000,7,15,21,2875,Resumen final de consola,120,120.244000
+media,20,15962,15962,0,0.000000,88.750000,88.750000,23.000000,16,66,89,15899,Resumen final de consola,180,180.232000
+alta,50,19030,19030,0,0.000000,105.790000,105.790000,267.000000,310,430,480,18932,Resumen final de consola,180,180.285000

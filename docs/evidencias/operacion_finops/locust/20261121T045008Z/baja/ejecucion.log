@@ -1,0 +1,19 @@
+[2026-11-20 22:51:19,856] LAPTOP-GOCNQSSK/INFO/locust.main: Starting Locust 2.47.0
+[2026-11-20 22:51:19,857] LAPTOP-GOCNQSSK/INFO/locust.main: Run time limit set to 120 seconds
+[2026-11-20 22:51:19,857] LAPTOP-GOCNQSSK/INFO/locust.runners: Ramping to 5 users at a rate of 10.00 per second
+[2026-11-20 22:51:19,858] LAPTOP-GOCNQSSK/INFO/locust.runners: All users spawned: {"UsuarioMiBici": 5} (5 total users)
+[2026-11-20 22:53:19,701] LAPTOP-GOCNQSSK/INFO/locust.main: --run-time limit reached, shutting down
+[2026-11-20 22:53:19,748] LAPTOP-GOCNQSSK/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+POST     /predict                                                                        2888     0(0.00%) |      7       5      83      7 |   24.11        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                      2888     0(0.00%) |      7       5      83      7 |   24.11        0.00
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+POST     /predict                                                                                7      7      8      8      8     12     14     15     83     83     83   2888
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                              7      7      8      8      8     12     14     15     83     83     83   2888
+
