@@ -1,0 +1,15 @@
+SHA-256 OK: MLmodel
+SHA-256 OK: conda.yaml
+SHA-256 OK: input_example.json
+SHA-256 OK: model.skops
+SHA-256 OK: python_env.yaml
+SHA-256 OK: registered_model_meta
+SHA-256 OK: requirements.txt
+SHA-256 OK: serving_input_example.json
+{
+  "model_name": "mibici-equipo32-p3-grupos",
+  "model_version": 2,
+  "run_id": "72a306c654714c35b9e1b73a0b4a784d",
+  "archivos_verificados": 8,
+  "resultado": "APROBADO"
+}

@@ -1102,5 +1102,33 @@ Consultar:
 La validacion compara la prediccion HTTP contra la del modelo
 local sin modificar el modelo ni sus alias.
 
-Las secciones de GitHub Actions, Locust y FinOps se incorporaran
-en los siguientes incrementos del Entregable 7.
+### CI/CD con GitHub Actions
+
+El workflow `.github/workflows/ci-cd.yml` se activa
+automaticamente mediante push y pull request.
+Tambien admite ejecucion manual desde GitHub Actions.
+
+El pipeline verifica dependencias e integridad del modelo,
+ejecuta PyTest, construye la imagen y levanta ambos servicios
+en un runner temporal mediante Docker Compose.
+
+La validacion comprueba salud, equivalencia predictiva y
+conectividad interna entre la API y MLflow.
+
+Para consultar resultados, abrir la pestana Actions,
+seleccionar MiBici CI-CD y revisar el artefacto
+`mibici-ci-evidence` de la ejecucion correspondiente.
+
+Reproducir las pruebas localmente:
+
+    python -m pip install -r requirements-ci.txt
+    python -m pip check
+    python scripts/verificar_integridad_ci.py
+    python -m pytest -q
+
+Consultar la documentacion adicional:
+
+`docs/evidencias/operacion_finops/README_ci_cd.md`
+
+Las secciones de Locust y FinOps se incorporaran
+en el siguiente incremento del Entregable 7.
