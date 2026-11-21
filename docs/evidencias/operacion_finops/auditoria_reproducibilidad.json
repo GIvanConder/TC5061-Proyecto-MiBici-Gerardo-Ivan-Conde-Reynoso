@@ -1,0 +1,25 @@
+{
+  "fecha_utc": "2026-11-21T05:39:24.177482+00:00",
+  "commit_auditado": "68b0379fc25af11f86067913b85fdf3bc3d50035",
+  "experimentos": [
+    "20261121T043544Z",
+    "20261121T045008Z"
+  ],
+  "tablas_verificadas": [
+    "finops/mediciones_consolidadas.csv",
+    "finops/escenarios_finops.csv",
+    "finops/costo_demanda_fija.csv",
+    "locust/comparacion_workers.csv",
+    "locust/20261121T043544Z/resumen_rendimiento.csv",
+    "locust/20261121T043544Z/resumen_recursos.csv",
+    "locust/20261121T045008Z/resumen_rendimiento.csv",
+    "locust/20261121T045008Z/resumen_recursos.csv"
+  ],
+  "total_tablas": 8,
+  "graficas_regeneradas": 16,
+  "inferencias_exitosas": 90239,
+  "fallos": 0,
+  "escenarios_finops": 24,
+  "metodo": "git archive y regeneracion con dependencias instaladas",
+  "resultado": "APROBADO"
+}

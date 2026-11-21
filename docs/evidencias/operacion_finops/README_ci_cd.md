@@ -54,3 +54,18 @@ No requiere acceso al Registry historico, datos originales
 ni secretos de servicios externos.
 
 No modifica los alias ni reentrena los modelos.
+
+## Auditoria experimental automatizada
+
+El workflow incorpora una comprobacion de reproducibilidad
+de los resultados historicos de Locust y FinOps.
+
+La auditoria regenera y compara las tablas numericas
+utilizando los archivos versionados y publica los resultados
+en los artefactos de la ejecucion.
+
+No ejecuta nuevamente pruebas de carga.
+
+Los artefactos de Actions tienen una retencion configurada
+de 30 dias. Las evidencias experimentales principales
+se conservan de forma independiente en Git.

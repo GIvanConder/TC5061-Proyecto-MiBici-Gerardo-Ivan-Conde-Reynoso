@@ -40,3 +40,33 @@ La Etapa 2 incluye:
 - Documentación reproducible desde un clon limpio.
 
 No se simulan revisiones cruzadas ni contribuciones de otros integrantes para esta segunda etapa. La trazabilidad de esta entrega se encuentra en el historial de Git, Pull Requests, MLflow y Model Registry.
+
+---
+
+## Entregable 7 - Microservicios, CI/CD y FinOps
+
+| PR | Commit integrado en main | Alcance |
+|---|---|---|
+| #28 | `9e20d76` | Orquestacion de FastAPI y MLflow mediante Compose |
+| #29 | `79a6095` | Automatizacion de pruebas, construccion y despliegue |
+| #30 | `effb5ed` | Locust, monitoreo, optimizacion de workers y FinOps |
+| #31 | `68b0379` | Evidencias originales y reproducibilidad experimental |
+
+### Resultados principales
+
+- 90,239 inferencias exitosas y cero fallos observados.
+- 69 pruebas de regresion aprobadas.
+- Integridad SHA-256 de ocho archivos verificada.
+- Comparacion de uno y dos workers de Uvicorn.
+- Incremento de rendimiento del 70.68% con 50 usuarios.
+- Reduccion de latencia p95 del 60.47% en carga alta.
+- 24 escenarios economicos FinOps.
+- Regeneracion de resultados desde archivos versionados.
+
+### Evidencias
+
+- [Historial de Pull Requests](../../pulls?q=is%3Apr+is%3Aclosed)
+- [Ejecuciones de GitHub Actions](../../actions)
+- [Documentacion operacional](docs/evidencias/operacion_finops/)
+- [Resultados Locust](docs/evidencias/operacion_finops/locust/)
+- [Resultados FinOps](docs/evidencias/operacion_finops/finops/)

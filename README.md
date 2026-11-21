@@ -1053,6 +1053,52 @@ TC5061 — Operaciones de aprendizaje automático
 
 ## Entregable 7 - Microservicios, CI/CD y FinOps
 
+### Resultados principales
+
+| Indicador | Resultado |
+|---|---:|
+| Inferencias exitosas | 90,239 |
+| Fallos observados | 0 |
+| Pruebas PyTest | 69 aprobadas |
+| Integridad del modelo | 8 archivos SHA-256 |
+| Rendimiento con 50 usuarios | 105.79 a 180.56 RPS |
+| Latencia p95 con 50 usuarios | 430 a 170 ms |
+| Escenarios FinOps | 24 |
+
+Los resultados corresponden a pruebas locales en WSL2.
+No representan capacidad comprobada en la nube.
+
+![Rendimiento por numero de workers](docs/evidencias/operacion_finops/locust/06_comparacion_rps.png)
+
+![Latencia p95 por numero de workers](docs/evidencias/operacion_finops/locust/07_comparacion_p95.png)
+
+### Auditoria reproducible
+
+Con las dependencias del proyecto instaladas, ejecutar:
+
+    .venv/bin/python scripts/auditar_reproducibilidad.py
+
+El script extrae los archivos versionados del commit actual,
+regenera las tablas y graficas en un directorio temporal
+y compara los resultados numericos con los originales.
+
+No ejecuta nuevamente las pruebas de carga ni modifica
+las evidencias historicas.
+
+Esta comprobacion tambien forma parte de GitHub Actions.
+
+### Acceso a evidencias
+
+- [Arquitectura y Compose](docs/evidencias/operacion_finops/README_compose.md)
+- [CI/CD](docs/evidencias/operacion_finops/README_ci_cd.md)
+- [Metodologia experimental](docs/evidencias/operacion_finops/README_locust_finops.md)
+- [Comparacion de workers](docs/evidencias/operacion_finops/locust/comparacion_workers.csv)
+- [Mediciones consolidadas](docs/evidencias/operacion_finops/finops/mediciones_consolidadas.csv)
+- [Escenarios economicos](docs/evidencias/operacion_finops/finops/escenarios_finops.csv)
+- [Tarifas de referencia](docs/evidencias/operacion_finops/finops/precios_referencia.json)
+- [Historial de CI/CD](../../actions)
+
+
 La arquitectura operacional incorpora Docker Compose compatible
 con Podman, FastAPI y un servidor MLflow independiente.
 
