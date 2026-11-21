@@ -43,7 +43,7 @@ No se simulan revisiones cruzadas ni contribuciones de otros integrantes para es
 
 ---
 
-## Entregable 7 - Microservicios, CI/CD y FinOps
+## Construye | Microservicios, CI/CD y FinOps
 
 | PR | Commit integrado en main | Alcance |
 |---|---|---|

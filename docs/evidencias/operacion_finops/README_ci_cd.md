@@ -1,4 +1,4 @@
-# CI/CD - Entregable 7
+# CI/CD - Construye | Microservicios, CI/CD y FinOps
 
 ## Objetivo
 
