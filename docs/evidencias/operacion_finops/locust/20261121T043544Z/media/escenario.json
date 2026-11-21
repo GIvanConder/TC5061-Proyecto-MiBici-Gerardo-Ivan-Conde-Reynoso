@@ -1,0 +1,19 @@
+{
+  "escenario": "media",
+  "usuarios": 20,
+  "duracion_programada_s": 180,
+  "duracion_observada_s": 180.232,
+  "inicio_utc": "2026-11-21T04:39:01.761574+00:00",
+  "fin_utc": "2026-11-21T04:42:01.993577+00:00",
+  "codigo_locust": 0,
+  "salud_previa": {
+    "status": "ok",
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  },
+  "salud_posterior": {
+    "status": "ok",
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  }
+}

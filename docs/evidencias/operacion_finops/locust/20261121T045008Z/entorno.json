@@ -1,0 +1,25 @@
+{
+  "identificador": "20261121T045008Z",
+  "fecha_utc": "2026-11-21T04:50:08.270901+00:00",
+  "commit_base": "79a6095d04026419ed553336378d97d09a0ee7d5",
+  "rama": "feat/entregable7-locust-finops",
+  "sistema": "Linux",
+  "arquitectura": "x86_64",
+  "kernel": "6.18.33.2-microsoft-standard-WSL2",
+  "cpu_logicas_visibles": 20,
+  "memoria_visible_bytes": 8127164416,
+  "podman": "podman version 5.7.0",
+  "locust": "locust 2.47.0 from /home/gerardo/.local/share/mibici-tools/locust/lib/python3.14/site-packages/locust (Python 3.14.4)",
+  "modelo": {
+    "status": "ok",
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  },
+  "contenedores": [
+    "mibici-finops_api_optimizada",
+    "mibici-finops_mlflow_1"
+  ],
+  "imagen": "1622516185538ccdf9cae505441891a0d17eabec15e72a60c44ec2fc81d9e08e",
+  "metodo": "Carga cerrada con espera de 0.1 a 0.3 s",
+  "configuracion": "2_workers"
+}

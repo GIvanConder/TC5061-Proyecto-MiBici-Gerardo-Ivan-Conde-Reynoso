@@ -1,0 +1,171 @@
+{
+  "ejecucion": "20261121T045008Z",
+  "rendimiento": [
+    {
+      "escenario": "baja",
+      "usuarios": 5,
+      "solicitudes": 2888,
+      "exitos": 2888,
+      "fallos": 0,
+      "tasa_error_pct": 0.0,
+      "rps": 24.10998077134905,
+      "rps_exitosas": 24.10998077134905,
+      "latencia_media_ms": 7.67175041137162,
+      "p50_ms": 7,
+      "p95_ms": 12,
+      "p99_ms": 15,
+      "solicitudes_csv_periodico": 2871,
+      "fuente_metricas": "JSON final de Locust",
+      "duracion_programada_s": 120,
+      "duracion_observada_s": 120.275
+    },
+    {
+      "escenario": "media",
+      "usuarios": 20,
+      "solicitudes": 16989,
+      "exitos": 16989,
+      "fallos": 0,
+      "tasa_error_pct": 0.0,
+      "rps": 94.469008080893,
+      "rps_exitosas": 94.469008080893,
+      "latencia_media_ms": 10.575634912475442,
+      "p50_ms": 8,
+      "p95_ms": 23,
+      "p99_ms": 36,
+      "solicitudes_csv_periodico": 16926,
+      "fuente_metricas": "JSON final de Locust",
+      "duracion_programada_s": 180,
+      "duracion_observada_s": 180.605
+    },
+    {
+      "escenario": "alta",
+      "usuarios": 50,
+      "solicitudes": 32479,
+      "exitos": 32479,
+      "fallos": 0,
+      "tasa_error_pct": 0.0,
+      "rps": 180.55909720323902,
+      "rps_exitosas": 180.55909720323902,
+      "latencia_media_ms": 73.2284497792115,
+      "p50_ms": 67,
+      "p95_ms": 170,
+      "p99_ms": 210,
+      "solicitudes_csv_periodico": 32356,
+      "fuente_metricas": "JSON final de Locust",
+      "duracion_programada_s": 180,
+      "duracion_observada_s": 180.283
+    }
+  ],
+  "recursos": [
+    {
+      "escenario": "reposo",
+      "usuarios": 0,
+      "servicio": "API",
+      "muestras": 13,
+      "cpu_media_pct": 0.2914467697907188,
+      "cpu_max_pct": 0.3138,
+      "memoria_media_mb": 493.39230769230767,
+      "memoria_max_mb": 494.2,
+      "intervalo_monitorizado_s": 29.673
+    },
+    {
+      "escenario": "reposo",
+      "usuarios": 0,
+      "servicio": "MLflow",
+      "muestras": 13,
+      "cpu_media_pct": 1.223125400195464,
+      "cpu_max_pct": 8.2949,
+      "memoria_media_mb": 1962.0,
+      "memoria_max_mb": 1962.0,
+      "intervalo_monitorizado_s": 29.673
+    },
+    {
+      "escenario": "calentamiento",
+      "usuarios": 2,
+      "servicio": "API",
+      "muestras": 13,
+      "cpu_media_pct": 6.036922868924491,
+      "cpu_max_pct": 6.7411,
+      "memoria_media_mb": 499.04615384615386,
+      "memoria_max_mb": 499.8,
+      "intervalo_monitorizado_s": 29.586
+    },
+    {
+      "escenario": "calentamiento",
+      "usuarios": 2,
+      "servicio": "MLflow",
+      "muestras": 13,
+      "cpu_media_pct": 1.886567971337795,
+      "cpu_max_pct": 8.4731,
+      "memoria_media_mb": 1962.6153846153845,
+      "memoria_max_mb": 1970.0,
+      "intervalo_monitorizado_s": 29.586
+    },
+    {
+      "escenario": "baja",
+      "usuarios": 5,
+      "servicio": "API",
+      "muestras": 48,
+      "cpu_media_pct": 14.944109110544877,
+      "cpu_max_pct": 16.8757,
+      "memoria_media_mb": 500.9875,
+      "memoria_max_mb": 502.1,
+      "intervalo_monitorizado_s": 118.522
+    },
+    {
+      "escenario": "baja",
+      "usuarios": 5,
+      "servicio": "MLflow",
+      "muestras": 48,
+      "cpu_media_pct": 1.5497553196874843,
+      "cpu_max_pct": 8.8538,
+      "memoria_media_mb": 1962.0,
+      "memoria_max_mb": 1962.0,
+      "intervalo_monitorizado_s": 118.522
+    },
+    {
+      "escenario": "media",
+      "usuarios": 20,
+      "servicio": "API",
+      "muestras": 71,
+      "cpu_media_pct": 60.55228349693626,
+      "cpu_max_pct": 67.4094,
+      "memoria_media_mb": 505.7859154929577,
+      "memoria_max_mb": 508.1,
+      "intervalo_monitorizado_s": 180.00900000000001
+    },
+    {
+      "escenario": "media",
+      "usuarios": 20,
+      "servicio": "MLflow",
+      "muestras": 71,
+      "cpu_media_pct": 1.5749495858540405,
+      "cpu_max_pct": 9.1251,
+      "memoria_media_mb": 1962.0140845070423,
+      "memoria_max_mb": 1963.0,
+      "intervalo_monitorizado_s": 180.00900000000001
+    },
+    {
+      "escenario": "alta",
+      "usuarios": 50,
+      "servicio": "API",
+      "muestras": 62,
+      "cpu_media_pct": 197.09964679936414,
+      "cpu_max_pct": 217.7112,
+      "memoria_media_mb": 522.6822578870967,
+      "memoria_max_mb": 526.7,
+      "intervalo_monitorizado_s": 178.65200000000002
+    },
+    {
+      "escenario": "alta",
+      "usuarios": 50,
+      "servicio": "MLflow",
+      "muestras": 62,
+      "cpu_media_pct": 1.6628092604616798,
+      "cpu_max_pct": 9.7554,
+      "memoria_media_mb": 1962.032258064516,
+      "memoria_max_mb": 1963.0,
+      "intervalo_monitorizado_s": 178.65200000000002
+    }
+  ]
+}

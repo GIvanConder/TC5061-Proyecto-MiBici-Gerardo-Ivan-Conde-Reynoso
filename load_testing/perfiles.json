@@ -1,0 +1,62 @@
+{
+  "origen": "Perfiles sinteticos de prueba",
+  "modelo": "mibici-equipo32-p3-grupos",
+  "version": 2,
+  "run_id": "72a306c654714c35b9e1b73a0b4a784d",
+  "perfiles": [
+    {
+      "nombre": "intensidad_baja",
+      "entrada": {
+        "salidas_dia": 5.0,
+        "llegadas_dia": 4.0,
+        "balance_relativo": 0.1111111111111111,
+        "share_fin_semana": 0.3,
+        "salida_manana_share": 0.25,
+        "llegada_manana_share": 0.2,
+        "salida_mediodia_share": 0.25,
+        "llegada_mediodia_share": 0.3,
+        "salida_tarde_share": 0.3,
+        "llegada_tarde_share": 0.3,
+        "salida_noche_share": 0.2,
+        "llegada_noche_share": 0.2
+      },
+      "cluster_esperado": 2
+    },
+    {
+      "nombre": "intensidad_media",
+      "entrada": {
+        "salidas_dia": 20.0,
+        "llegadas_dia": 19.0,
+        "balance_relativo": 0.02564102564102564,
+        "share_fin_semana": 0.25,
+        "salida_manana_share": 0.25,
+        "llegada_manana_share": 0.25,
+        "salida_mediodia_share": 0.25,
+        "llegada_mediodia_share": 0.25,
+        "salida_tarde_share": 0.25,
+        "llegada_tarde_share": 0.25,
+        "salida_noche_share": 0.25,
+        "llegada_noche_share": 0.25
+      },
+      "cluster_esperado": 3
+    },
+    {
+      "nombre": "intensidad_alta",
+      "entrada": {
+        "salidas_dia": 80.0,
+        "llegadas_dia": 78.0,
+        "balance_relativo": 0.012658227848101266,
+        "share_fin_semana": 0.18,
+        "salida_manana_share": 0.45,
+        "llegada_manana_share": 0.3,
+        "salida_mediodia_share": 0.2,
+        "llegada_mediodia_share": 0.2,
+        "salida_tarde_share": 0.3,
+        "llegada_tarde_share": 0.45,
+        "salida_noche_share": 0.05,
+        "llegada_noche_share": 0.05
+      },
+      "cluster_esperado": 3
+    }
+  ]
+}

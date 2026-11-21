@@ -6,6 +6,17 @@ services:
     build:
       context: ./serving
       dockerfile: Containerfile
+    command:
+      - python
+      - -m
+      - uvicorn
+      - serving.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "${MIBICI_API_WORKERS:-1}"
     ports:
       - "127.0.0.1:${MIBICI_API_PORT:-8000}:8000"
     restart: unless-stopped

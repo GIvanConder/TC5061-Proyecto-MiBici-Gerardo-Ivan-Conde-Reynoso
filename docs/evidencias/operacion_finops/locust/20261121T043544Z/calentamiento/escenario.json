@@ -1,0 +1,19 @@
+{
+  "escenario": "calentamiento",
+  "usuarios": 2,
+  "duracion_programada_s": 30,
+  "duracion_observada_s": 30.425,
+  "inicio_utc": "2026-11-21T04:36:21.087495+00:00",
+  "fin_utc": "2026-11-21T04:36:51.512211+00:00",
+  "codigo_locust": 0,
+  "salud_previa": {
+    "status": "ok",
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  },
+  "salud_posterior": {
+    "status": "ok",
+    "model_name": "mibici-equipo32-p3-grupos",
+    "model_version": 2
+  }
+}
