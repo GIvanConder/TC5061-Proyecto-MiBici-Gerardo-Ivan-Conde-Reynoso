@@ -51,6 +51,7 @@ No se simulan revisiones cruzadas ni contribuciones de otros integrantes para es
 | #29 | `79a6095` | Automatizacion de pruebas, construccion y despliegue |
 | #30 | `effb5ed` | Locust, monitoreo, optimizacion de workers y FinOps |
 | #31 | `68b0379` | Evidencias originales y reproducibilidad experimental |
+| #32 | `3384cc5` | Auditoría automatizada de reproducibilidad e integración en CI/CD |
 
 ### Resultados principales
 

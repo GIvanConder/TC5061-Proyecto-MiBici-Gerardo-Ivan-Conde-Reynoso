@@ -1,5 +1,149 @@
 # TC5061 — Proyecto MiBici
 
+## Guía rápida del Entregable 7
+
+Esta sección concentra las instrucciones para evaluar
+la arquitectura de microservicios, CI/CD, pruebas de carga
+y análisis FinOps, sin necesidad de repetir el entrenamiento
+de los modelos.
+
+[![MiBici CI-CD](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/actions/workflows/ci-cd.yml)
+
+### Resultados destacados
+
+| Indicador | Resultado |
+|---|---:|
+| Microservicios | 2 |
+| Pruebas de regresión | 69 aprobadas |
+| Inferencias exitosas | 90,239 |
+| Fallos observados | 0 |
+| Mejora de rendimiento en carga alta | 70.68 % |
+| Reducción de latencia p95 | 60.47 % |
+| Escenarios económicos FinOps | 24 |
+| Tablas reproducibles | 8 |
+| Gráficas regenerables | 16 |
+
+### 1. Requisitos
+
+- Git.
+- Python 3.14 para pruebas y auditoría local.
+- Podman con proveedor Compose compatible,
+  o Docker Engine con Docker Compose.
+- Conexión a Internet para descargar las dependencias
+  y la imagen base durante la primera construcción.
+- Puertos locales 8000 y 5000 disponibles.
+
+Los benchmarks se realizaron en WSL2 con Podman 5.7.
+El workflow de integración continua utiliza Docker Compose.
+
+### 2. Obtener el proyecto
+
+```bash
+git clone https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso.git
+cd TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso
+```
+
+### 3. Levantar los microservicios
+
+Con Podman y su proveedor Compose instalado:
+
+```bash
+podman compose up -d --build
+```
+
+El archivo `.env.example` documenta las variables opcionales.
+No es necesario modificar la configuración predeterminada.
+
+| Servicio | Dirección local |
+|---|---|
+| FastAPI | http://127.0.0.1:8000 |
+| Swagger / OpenAPI | http://127.0.0.1:8000/docs |
+| MLflow | http://127.0.0.1:5000 |
+
+La configuración utiliza una red interna y un volumen
+persistente para MLflow.
+
+Comprobar el estado después de que los servicios
+hayan terminado de iniciar:
+
+```bash
+podman compose ps
+curl -f http://127.0.0.1:8000/health
+curl -f http://127.0.0.1:5000/health
+```
+
+La API contiene el Pipeline P3 v2 previamente exportado.
+No requiere reentrenamiento ni descargar datasets históricos.
+
+Para Docker Compose, el procedimiento de construcción y
+despliegue también se encuentra en el workflow de CI/CD.
+
+### 4. Instalar dependencias para las validaciones locales
+
+En Linux o WSL, utilizando Python 3.14:
+
+```bash
+python3.14 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-ci.txt
+python -m pip check
+```
+
+### 5. Ejecutar pruebas e integración
+
+```bash
+python scripts/verificar_integridad_ci.py
+python -m pytest -q
+python scripts/validar_compose.py
+```
+
+La validación de Compose requiere ambos servicios activos.
+
+### 6. Reproducir los resultados experimentales y FinOps
+
+```bash
+python scripts/auditar_reproducibilidad.py
+```
+
+Este comando extrae una copia del commit actual,
+regenera ocho tablas y dieciséis gráficas y contrasta
+los valores numéricos con los resultados versionados.
+
+No necesita ejecutar nuevamente los experimentos de
+Locust ni disponer de contenedores activos.
+
+### 7. Detener los microservicios
+
+```bash
+podman compose down
+```
+
+No utilizar `down -v` si se desea conservar
+el almacenamiento persistente de MLflow.
+
+### 8. Índice de evidencias para la evaluación
+
+| Criterio | Evidencia |
+|---|---|
+| Docker Compose | [Configuración](docker-compose.yml) |
+| Arquitectura y validaciones | [Documentación](docs/evidencias/operacion_finops/README_compose.md) |
+| CI/CD | [Workflow](.github/workflows/ci-cd.yml) |
+| Ejecuciones automáticas | [GitHub Actions](../../actions) |
+| Locust | [Metodología](docs/evidencias/operacion_finops/README_locust_finops.md) |
+| Resultados experimentales | [Comparación CSV](docs/evidencias/operacion_finops/locust/comparacion_workers.csv) |
+| FinOps | [Escenarios económicos](docs/evidencias/operacion_finops/finops/escenarios_finops.csv) |
+| Tarifas | [Precios de referencia](docs/evidencias/operacion_finops/finops/precios_referencia.json) |
+| Reproducibilidad | [Script de auditoría](scripts/auditar_reproducibilidad.py) |
+| Contribuciones | [Historial documentado](CONTRIBUCIONES.md) |
+
+[Consultar la documentación completa del Entregable 7](#entregable-7---microservicios-cicd-y-finops).
+
+Los costos FinOps son proyecciones basadas en mediciones
+locales y tarifas públicas. No representan facturación real
+ni rendimiento validado en infraestructura AWS.
+
+---
+
 Proyecto integrador de **Operaciones de Aprendizaje Automático (TC5061)** enfocado en la aplicación de prácticas de MLOps sobre los datos abiertos de **MiBici**, sistema de bicicleta pública del Área Metropolitana de Guadalajara.
 
 La solución implementa un flujo reproducible mediante **MLflow Projects, MLflow Tracking y MLflow Model Registry**, manteniendo trazabilidad entre código, datos, experimentos y modelos seleccionados.
@@ -1107,7 +1251,6 @@ con Podman, FastAPI y un servidor MLflow independiente.
 Desde la raiz del repositorio, con Podman 5.7 y un proveedor
 Compose compatible:
 
-    export PODMAN_COMPOSE_PROVIDER="$HOME/.local/share/mibici-tools/podman-compose/bin/podman-compose"
     podman compose -f docker-compose.yml up -d --build
 
 El archivo `.env.example` documenta los puertos configurables.
