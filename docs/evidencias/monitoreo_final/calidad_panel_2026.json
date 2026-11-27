@@ -1,0 +1,14 @@
+{
+  "filas_panel_antes_dropna": 125202,
+  "filas_panel_evaluables": 122365,
+  "filas_sin_historia_suficiente": 2837,
+  "estaciones_con_viajes_2025": 371,
+  "estaciones_con_viajes_2026": 472,
+  "estaciones_nuevas_observadas": 102,
+  "estaciones_historicas_sin_viajes_2026": 1,
+  "estaciones_en_panel_evaluable": 472,
+  "estaciones_2026_sin_catalogo": 2,
+  "filas_capacidad_cero": 233,
+  "limitacion_capacidad": "Se conserva el catálogo histórico de septiembre de 2026. No hay reconstrucción de capacidades vigentes para cada fecha de evaluación.",
+  "limitacion_actividad": "Los días sin salidas se representan como cero. No se distingue falta de demanda de suspensión operativa o retiro de una estación."
+}

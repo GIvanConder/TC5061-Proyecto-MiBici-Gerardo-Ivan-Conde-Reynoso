@@ -1,0 +1,34 @@
+{
+  "periodo": "2026-01/2026-10",
+  "registros_totales": 3997597,
+  "ids_unicos": 3996839,
+  "repeticiones_excedentes": 758,
+  "filas_involucradas": 1516,
+  "ids_afectados": 758,
+  "ids_duplicados_operacionales": 758,
+  "ids_conflictivos": 0,
+  "ids_repetidos_entre_meses": 0,
+  "copias_operacionales_redundantes": 758,
+  "copias_redundantes_validas_p1": 741,
+  "repeticiones_id_validas_p1": 741,
+  "ids_conflictivos_con_varios_eventos_validos": 0,
+  "diferencias_en_conflictos": {
+    "inicio_distinto": 0,
+    "fin_distinto": 0,
+    "origen_distinto": 0,
+    "destino_distinto": 0
+  },
+  "contraste_historico": {
+    "registros_2025": 4532032,
+    "ids_unicos_2025": 4532032,
+    "ids_nulos_2025": 0,
+    "ids_repetidos_2025": 0,
+    "repeticiones_excedentes_2025": 0,
+    "copias_operacionales_redundantes_2025": 0,
+    "ids_compartidos_entre_2025_y_2026": 0,
+    "historico_modificado": false
+  },
+  "registros_eliminados": 0,
+  "tratamiento_aplicado": false,
+  "nota": "Identidad operacional definida por ID, inicio, fin, origen y destino. No implica identidad de todos los campos del CSV original. No se exportan identificadores individuales ni atributos personales."
+}

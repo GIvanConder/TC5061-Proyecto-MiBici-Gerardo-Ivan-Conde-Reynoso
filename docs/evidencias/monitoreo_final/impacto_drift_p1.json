@@ -1,0 +1,32 @@
+{
+  "modelo": "mibici-equipo32-p1-demanda",
+  "version": 1,
+  "run_id": "371bf2379bfa4a74b8effbe02d2ee3ae",
+  "logged_model_id": "m-f1e2eda1d16a4663a7ec1f50d75859d9",
+  "data_version": "7aa5e436d887",
+  "variable": "dias_activa",
+  "minimo_train": 28.0,
+  "maximo_train": 272.0,
+  "sensibilidad_modelo": {
+    "coeficiente_estandarizado": -0.0042668871641399425,
+    "media_scaler": 149.90259337249253,
+    "escala_scaler": 70.72539855219908,
+    "coeficiente_por_dia": -6.033033749524585e-05,
+    "factor_prediccion_30_dias": 0.9981917267747766,
+    "variacion_prediccion_30_dias_pct": -0.1808273225223348,
+    "factor_prediccion_365_dias": 0.9782201097401534
+  },
+  "huellas_artefacto": {
+    "MLmodel": "0db7f7c084230195de3186d4f8bc2e9973bfa8d873956298610934152fe0094b",
+    "conda.yaml": "d3aa8412cf4a0241dd115f773bb6d468b4ffca54a85e3698929d4217d89482fb",
+    "input_example.json": "0567b810ebd514e8a3389140136dd2d310f66c8e04ae1fbe9117b98bd6638ed7",
+    "model.skops": "de986bc8310016a658225f73b31680c0ad7cf14ca0c6550d48dc64f9190eccf1",
+    "python_env.yaml": "203fb7f39c67b20a4ca6844a19a31ef5b903f04c98f9c7ffe6031d5319482ceb",
+    "requirements.txt": "133608160d0e654698a86e4bdc1d53f3b4d744a4768aedc53e747bdd753a5c13",
+    "serving_input_example.json": "393b6fbca830e73649a0bd5e9a2eded4acccebe46dcfa5a521a8c93796f88906"
+  },
+  "mae_historico_reproducido": true,
+  "entrenamiento_realizado": false,
+  "modificaciones_registry": false,
+  "metodologia": "Diagnostico descriptivo y sensibilidad contrafactual de una sola variable. El recorte al rango TRAIN no es una correccion validada ni una politica de inferencia. Las diferencias entre segmentos no demuestran causalidad."
+}

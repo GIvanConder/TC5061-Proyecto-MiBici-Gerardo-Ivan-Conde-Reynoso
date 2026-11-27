@@ -1,0 +1,15 @@
+{
+  "registros_originales": 3997597,
+  "copias_redundantes_retiradas": 758,
+  "registros_unicos": 3996839,
+  "viajes_validos_antes_del_tratamiento": 3841722,
+  "viajes_validos_despues_del_tratamiento": 3840981,
+  "copias_redundantes_validas_p1_retiradas": 741,
+  "copias_redundantes_no_validas_p1_retiradas": 17,
+  "ids_conflictivos": 0,
+  "ids_duplicados_despues_del_tratamiento": 0,
+  "mes_afectado": "2026-09",
+  "csv_originales_modificados": false,
+  "tratamiento_aplicado": true,
+  "resultado": "APROBADO"
+}

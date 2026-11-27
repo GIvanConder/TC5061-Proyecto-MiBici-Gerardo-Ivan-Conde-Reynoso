@@ -1,0 +1,48 @@
+{
+  "modelo": "mibici-equipo32-p1-demanda",
+  "version": 1,
+  "run_id": "371bf2379bfa4a74b8effbe02d2ee3ae",
+  "logged_model_id": "m-f1e2eda1d16a4663a7ec1f50d75859d9",
+  "data_version_historica": "7aa5e436d887",
+  "data_version_evaluacion_2026": "c915fc2638a4",
+  "evaluacion": "retrospectiva_temporal_externa",
+  "entrenamiento_realizado": false,
+  "promocion_realizada": false,
+  "mae_test_2025_reproducido": 5.409785669092729,
+  "metricas_globales": {
+    "periodo": "2026-01/2026-10",
+    "segmento": "total",
+    "observaciones": 122365,
+    "estaciones": 472,
+    "dias_activa_min": 28.0,
+    "dias_activa_max": 668.0,
+    "demanda_real_media": 31.200367752216728,
+    "prediccion_media": 29.567381803760984,
+    "mae": 6.068723231448866,
+    "rmse": 11.396509014130352,
+    "wape": 0.19450806732935685,
+    "sesgo": -1.6329859484557459,
+    "mae_baseline_lag7": 7.7586074449393205,
+    "mae_sensibilidad_recorte": 6.005901210601643,
+    "cambio_absoluto_prediccion_medio": 0.4404580152542709
+  },
+  "soporte_dias_activa": {
+    "minimo_train": 28.0,
+    "maximo_train": 272.0,
+    "minimo_actual": 28.0,
+    "maximo_actual": 668.0,
+    "mediana_actual": 502.0,
+    "fuera_train": 112282,
+    "fuera_train_pct": 91.75989866383361
+  },
+  "sensibilidad_modelo": {
+    "coeficiente_estandarizado": -0.0042668871641399425,
+    "media_scaler": 149.90259337249253,
+    "escala_scaler": 70.72539855219908,
+    "coeficiente_por_dia": -6.033033749524585e-05,
+    "factor_prediccion_30_dias": 0.9981917267747766,
+    "variacion_prediccion_30_dias_pct": -0.1808273225223348,
+    "factor_prediccion_365_dias": 0.9782201097401534
+  },
+  "nota": "Evaluación diaria con rezagos observados hasta D-1. No es un pronóstico multihorizonte emitido al comienzo de 2026."
+}

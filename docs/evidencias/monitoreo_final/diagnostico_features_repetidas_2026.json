@@ -1,0 +1,10 @@
+{
+  "observaciones": 122365,
+  "claves_estacion_fecha_duplicadas": 0,
+  "copias_excedentes_vectores_features": 166,
+  "filas_con_vectores_features_repetidos": 274,
+  "grupos_features_repetidos": 108,
+  "estaciones_involucradas": 14,
+  "filas_eliminadas": 0,
+  "decision": "Conservar observaciones estación-día únicas. La igualdad de las 12 características no demuestra que dos observaciones correspondan al mismo evento."
+}

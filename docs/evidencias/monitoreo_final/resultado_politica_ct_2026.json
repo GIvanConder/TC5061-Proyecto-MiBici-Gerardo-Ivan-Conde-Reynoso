@@ -1,0 +1,29 @@
+{
+  "politica_version": "1.0.0",
+  "modelo": "mibici-equipo32-p1-demanda",
+  "version_modelo": 1,
+  "data_version_evaluacion": "c915fc2638a4",
+  "tipo": "aplicacion_retrospectiva_de_politica_inicial",
+  "validacion_prospectiva": false,
+  "umbral_mae": 6.221253519456638,
+  "meses_con_alerta_desempeno": [
+    "2026-06",
+    "2026-09",
+    "2026-10"
+  ],
+  "solicitudes_evaluacion_reentrenamiento": [
+    "2026-10"
+  ],
+  "semanas_completas": 42,
+  "semanas_parciales": 2,
+  "semanas_completas_alerta_extrapolacion": 42,
+  "semanas_alerta_catalogo": 17,
+  "variables_con_drift": 4,
+  "proporcion_variables_drift": 0.3333333333333333,
+  "alerta_drift_global": false,
+  "alcance_evidently": "Evaluación agregada enero-octubre 2026; frecuencia semanal propuesta, no automatizada.",
+  "entrenamiento_ejecutado": false,
+  "promocion_ejecutada": false,
+  "decision": "Conservar champion P1 v1 y solicitar evaluación supervisada de un candidato cuando corresponda.",
+  "limitacion": "Umbrales iniciales definidos después de conocer la evaluación externa. La referencia de TEST 2025 no controla completamente estacionalidad ni expansión."
+}

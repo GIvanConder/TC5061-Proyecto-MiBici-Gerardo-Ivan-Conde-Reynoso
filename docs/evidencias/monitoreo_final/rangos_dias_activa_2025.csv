@@ -1,0 +1,4 @@
+particion,observaciones,minimo,p05,mediana,p95,maximo,inferior_train,superior_train,fuera_train,fuera_train_pct
+train,90230,28.0,40.0,150.0,260.0,272.0,0,0,0,0.0
+val,11439,114.0,274.0,288.0,302.0,303.0,0,11392,11392,99.5891249235073
+test,22565,28.0,306.0,334.0,361.0,364.0,0,22448,22448,99.48149789497009
