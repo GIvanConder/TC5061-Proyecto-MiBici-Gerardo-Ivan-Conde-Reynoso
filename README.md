@@ -1,5 +1,426 @@
 # TC5061 — Proyecto MiBici
 
+[![MiBici CI-CD](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/actions/workflows/ci-cd.yml)
+
+<!-- INICIO_GUIA_PROYECTO_FINAL -->
+
+## Entrega final — Proyecto MiBici
+
+**Actividad:** Construye | Entrega proyecto final | Colaborativo
+
+**Curso:** Operaciones de Aprendizaje Automático (MLOps).
+
+**Equipo:** 32.
+
+**Programa:** Maestría en Inteligencia Artificial Aplicada,
+Tecnológico de Monterrey.
+
+### Resumen ejecutivo
+
+El proyecto implementa un ciclo de vida de Machine Learning
+aplicado al sistema de bicicletas públicas MiBici,
+integrando preparación de datos, experimentación,
+evaluación temporal, registro de modelos, despliegue,
+pruebas, integración continua, monitoreo y gobernanza.
+
+Se desarrollaron tres problemas complementarios:
+
+| Problema | Objetivo | Modelo seleccionado |
+|---|---|---|
+| P1: Regresión | Estimar viajes iniciados por estación al día siguiente | PoissonRegressor |
+| P2: Clasificación | Identificar riesgo indirecto de desequilibrio durante las próximas dos horas | HistGradientBoostingClassifier |
+| P3: Clustering | Agrupar estaciones según sus patrones de uso | KMeans, k=4 |
+
+P1 demuestra el proceso de monitoreo, comparación de versiones
+y gobernanza. P3 demuestra el despliegue de un modelo mediante
+una API REST, contenedores, microservicios y evaluación
+de desempeño operacional.
+
+### Resultados principales
+
+| Problema | Métrica principal | Baseline TEST | Champion TEST |
+|---|---|---:|---:|
+| P1 | MAE | 7.219455 | 5.409786 |
+| P2 | F1 | 0.364526 | 0.400710 |
+| P2 | PR-AUC | 0.351402 | 0.399357 |
+| P3 | ARI TRAIN-TEST | 0.725865 | 0.792685 |
+| P3 | NMI TRAIN-TEST | 0.619183 | 0.736070 |
+
+Las métricas corresponden a los protocolos temporales
+originales de 2025.
+
+P1 y P2 se seleccionaron mediante VALIDATION.
+La selección de P3 se basó en métricas internas de TRAIN
+y la utilidad interpretativa de la segmentación.
+
+TEST se reservó para la evaluación final.
+
+P3 no supera al baseline en todas las métricas internas;
+la elección de cuatro grupos representa un compromiso
+entre calidad, estabilidad e interpretabilidad.
+
+Consultar las [Model Cards](docs/model_cards/README.md)
+para revisar los resultados completos y sus limitaciones.
+
+### Arquitectura integral
+
+```mermaid
+flowchart TD
+    A[Datos abiertos MiBici] --> B[Ingesta y versionado]
+    B --> C[Feature engineering]
+    C --> D[MLflow Projects y experimentacion]
+    D --> E[MLflow Tracking]
+    E --> F[Model Registry]
+    F --> G[P1 champion v1]
+    F --> H[P2 champion v1]
+    F --> I[P3 champion v1]
+    F --> J[P1 challenger v2]
+    I --> K[P3 serving v2]
+    K --> L[Artefacto empaquetado]
+    L --> M[FastAPI en contenedor]
+    M --> N[Compose]
+    M --> O[Locust y FinOps]
+    G --> P[Evidently y evaluacion 2026]
+    G --> Q[Comparacion AB historica]
+    J --> Q
+    P --> R[Politica de gobernanza]
+    Q --> R
+    S[PyTest y GitHub Actions] --> M
+    S --> T[Auditoria de integridad]
+```
+
+MLflow Tracking y Model Registry conservan el linaje de las
+versiones seleccionadas.
+
+El servicio de inferencia utiliza el pipeline P3 serving v2
+empaquetado localmente. No consulta MLflow en cada petición.
+
+El servicio MLflow incluido en Compose dispone de
+almacenamiento independiente. No debe confundirse con
+la base histórica de experimentación y Model Registry.
+
+### Model Registry y versiones
+
+| Modelo registrado | Versión | Alias | Función |
+|---|---:|---|---|
+| mibici-equipo32-p1-demanda | 1 | champion | Regresión seleccionada |
+| mibici-equipo32-p1-demanda | 2 | challenger | Comparación histórica de versiones |
+| mibici-equipo32-p2-riesgo | 1 | champion | Clasificación seleccionada |
+| mibici-equipo32-p3-grupos | 1 | champion | KMeans seleccionado |
+| mibici-equipo32-p3-grupos | 2 | serving | Pipeline completo para inferencia |
+
+Versión histórica de datos: `7aa5e436d887`.
+
+Versión de evaluación externa: `c915fc2638a4`.
+
+P3 serving v2 conserva el KMeans original e incorpora
+su preprocesamiento ajustado durante el entrenamiento.
+Su creación no requirió un nuevo ajuste de KMeans.
+
+El estado READY del Registry no implica que todos los
+modelos estén expuestos mediante la API.
+
+### Guía de evaluación por rúbrica
+
+#### 1. Estructura y experimentación — 20 puntos
+
+| Evidencia | Ubicación |
+|---|---|
+| Definición de MLflow Projects | [MLproject](MLproject) |
+| Entorno reproducible | [python_env.yaml](python_env.yaml) |
+| Dependencias | [requirements.txt](requirements.txt) |
+| Configuración | [mibici/config.py](mibici/config.py) |
+| Ingesta y transformación | [mibici/dataset.py](mibici/dataset.py) |
+| Feature engineering | [mibici/features.py](mibici/features.py) |
+| Entrenamiento de P1 | [p1_regresion.py](mibici/modeling/p1_regresion.py) |
+| Entrenamiento de P2 | [p2_clasificacion.py](mibici/modeling/p2_clasificacion.py) |
+| Entrenamiento de P3 | [p3_clustering.py](mibici/modeling/p3_clustering.py) |
+
+#### 2. Modelo registrado y linaje — 15 puntos
+
+| Evidencia | Ubicación |
+|---|---|
+| Registro y gestión de modelos | [model_registry.py](mibici/model_registry.py) |
+| Model Cards | [docs/model_cards](docs/model_cards/README.md) |
+| Metadatos de serving v2 | [deployment_metadata.json](serving/models/p3/deployment_metadata.json) |
+| Equivalencia del pipeline | [validacion_pipeline_p3.json](docs/evidencias/api-p3/validacion_pipeline_p3.json) |
+| Validación API y Registry | [validacion_api_registry_v2.json](docs/evidencias/api-p3/validacion_api_registry_v2.json) |
+
+#### 3. Despliegue y operación — 25 puntos
+
+| Evidencia | Ubicación |
+|---|---|
+| Contenedor de inferencia | [Containerfile](serving/Containerfile) |
+| Arquitectura de microservicios | [docker-compose.yml](docker-compose.yml) |
+| Variables de entorno | [.env.example](.env.example) |
+| Validación Compose | [README_compose.md](docs/evidencias/operacion_finops/README_compose.md) |
+| Integración continua | [GitHub Actions](.github/workflows/ci-cd.yml) |
+| Documentación CI/CD | [README_ci_cd.md](docs/evidencias/operacion_finops/README_ci_cd.md) |
+| Pruebas de carga | [Locustfile](load_testing/locustfile.py) |
+| Resultados operacionales | [Locust y FinOps](docs/evidencias/operacion_finops/README_locust_finops.md) |
+| Pruebas automatizadas | [tests](tests/) |
+| Integridad de artefactos | [verificar_integridad_ci.py](scripts/verificar_integridad_ci.py) |
+
+#### 4. Monitoreo, gobernanza y FinOps — 20 puntos
+
+| Evidencia | Ubicación |
+|---|---|
+| Monitoreo histórico P1 | [Evidently 2025](docs/evidencias/monitoreo_p1/README.md) |
+| Comparación A/B histórica | [A/B testing](docs/evidencias/ab_p1/README.md) |
+| Resultados pareados | [comparacion_ab_p1.json](docs/evidencias/ab_p1/comparacion_ab_p1.json) |
+| Evaluación externa 2026 | [Monitoreo final](docs/evidencias/monitoreo_final/README.md) |
+| Reporte Evidently 2026 | [Reporte HTML](docs/evidencias/monitoreo_final/evidently_p1_2026.html) |
+| Drift por variable | [Resumen CSV](docs/evidencias/monitoreo_final/resumen_drift_variables_2026.csv) |
+| Desempeño mensual | [Desempeño 2026](docs/evidencias/monitoreo_final/desempeno_mensual_2026.csv) |
+| Política de Continuous Training | [Gobernanza P1](monitoring/README_politica_ct_p1.md) |
+| Resultado de la política | [resultado_politica_ct_2026.json](docs/evidencias/monitoreo_final/resultado_politica_ct_2026.json) |
+| Model Card P1 | [Predicción de demanda](docs/model_cards/P1_demanda.md) |
+| Model Card P2 | [Clasificación de riesgo](docs/model_cards/P2_riesgo.md) |
+| Model Card P3 | [Segmentación de estaciones](docs/model_cards/P3_segmentacion.md) |
+| Escenarios de costos | [FinOps](docs/evidencias/operacion_finops/finops/escenarios_finops.csv) |
+| Auditoría experimental | [Reproducibilidad](docs/evidencias/operacion_finops/auditoria_reproducibilidad.json) |
+
+Los reportes HTML pueden descargarse desde GitHub
+y abrirse localmente en un navegador.
+
+#### 5. Presentación y demostración — 20 puntos
+
+La presentación y el video continuo de demostración
+se entregan mediante Canvas.
+
+La demostración se apoya en la API P3, sus endpoints
+de salud e inferencia y las evidencias versionadas
+de experimentación, operación y gobernanza.
+
+### Monitoreo y decisión de mantenimiento
+
+La comparación A/B histórica utiliza 22,565 observaciones
+comunes de noviembre y diciembre de 2025.
+
+| Indicador | Resultado |
+|---|---:|
+| MAE champion v1 | 5.409786 |
+| MAE challenger v2 | 5.475699 |
+| Diferencia champion menos challenger | -0.065913 |
+| Límite inferior IC95% | -0.113995 |
+| Límite superior IC95% | -0.020573 |
+
+La comparación pareada y el bootstrap por bloques
+de siete días respaldan la conservación del champion v1.
+
+No se trata de un experimento aleatorizado en producción.
+
+La evaluación externa de enero a octubre de 2026
+comprende 3,840,981 viajes utilizables, 304 días
+y 122,365 observaciones estación-día.
+
+| Indicador externo P1 | Resultado |
+|---|---:|
+| Estaciones evaluadas | 472 |
+| MAE champion | 6.068723 |
+| MAE baseline | 7.758607 |
+| WAPE | 19.4508% |
+| Incremento de MAE respecto a TEST 2025 | 12.18% |
+| Reducción de MAE respecto al baseline externo | 21.78% |
+| Variables con drift | 4 de 12 |
+
+El modelo conserva utilidad predictiva frente al baseline
+semanal durante los diez meses, aunque se identifica
+deterioro respecto al TEST histórico.
+
+La política inicial establece una alerta de desempeño
+cuando el MAE aumenta al menos 15% respecto a la referencia.
+Dos meses consecutivos de deterioro justifican solicitar
+la evaluación de un posible reentrenamiento.
+
+La aplicación retrospectiva activa esta recomendación
+en octubre de 2026.
+
+Los umbrales requieren validación prospectiva.
+No se realizaron nuevos entrenamientos ni promociones
+durante la consolidación final.
+
+### Desempeño operacional y FinOps
+
+Las pruebas de carga de P3 se ejecutaron localmente
+con perfiles sintéticos y dos configuraciones de workers.
+
+| Usuarios concurrentes | Workers | RPS exitosas | Latencia p95 |
+|---:|---:|---:|---:|
+| 5 | 1 | 24.13 | 15 ms |
+| 20 | 1 | 88.75 | 66 ms |
+| 50 | 1 | 105.79 | 430 ms |
+| 5 | 2 | 24.11 | 12 ms |
+| 20 | 2 | 94.47 | 23 ms |
+| 50 | 2 | 180.56 | 170 ms |
+
+Se registraron 90,239 peticiones exitosas y cero fallos
+en los seis escenarios principales de carga.
+
+El SLO exploratorio de latencia p95 de hasta 200 ms
+permite contrastar las configuraciones estudiadas.
+Fue definido después de obtener las mediciones y no
+constituye un SLA de producción.
+
+Se conserva un worker como configuración base,
+con la posibilidad de utilizar dos workers cuando
+la demanda y los recursos disponibles lo justifiquen.
+
+Las estimaciones FinOps utilizan escenarios de referencia
+de Amazon Lightsail con precios mensuales de USD 42
+para 2 vCPU y 4 GB, y USD 84 para 4 vCPU y 8 GB.
+
+| Escenario de referencia | Costo mensual | Costo estimado por millón de inferencias |
+|---|---:|---:|
+| 1 worker, 20 usuarios, 2 vCPU | USD 42 | USD 0.365 |
+| 2 workers, 20 usuarios, 2 vCPU | USD 42 | USD 0.343 |
+| 2 workers, 50 usuarios, 4 vCPU | USD 84 | USD 0.359 |
+
+Los costos unitarios suponen una utilización del 50%
+del rendimiento exitoso observado y un mes de 30 días.
+
+La utilización representa una fracción del throughput,
+no el porcentaje de CPU.
+
+Son escenarios económicos hipotéticos basados en
+mediciones locales. No representan facturación real
+ni validación de rendimiento sobre instancias en nube.
+
+No incluyen impuestos, personal, alta disponibilidad,
+entrenamiento, respaldos ni otros servicios adicionales.
+
+Consultar las [mediciones consolidadas](docs/evidencias/operacion_finops/finops/mediciones_consolidadas.csv)
+y los [escenarios FinOps](docs/evidencias/operacion_finops/finops/escenarios_finops.csv).
+
+### Guía rápida de demostración
+
+La demostración de P3 no requiere reentrenar modelos,
+descargar los datos crudos ni recuperar el Registry
+histórico de experimentación.
+
+Se requiere Git y un entorno compatible con Docker
+Compose o Podman Compose.
+
+Desde la raíz del repositorio, con Podman Compose
+previamente configurado:
+
+```bash
+podman compose up -d --build
+podman compose ps
+```
+
+Alternativamente, con Docker:
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+Utilizar solamente una de las alternativas.
+
+Una vez que los servicios estén saludables:
+
+```bash
+curl --fail --silent --show-error http://127.0.0.1:8000/health
+```
+
+La respuesta debe identificar el modelo
+`mibici-equipo32-p3-grupos`, versión 2.
+
+La documentación interactiva está disponible en:
+
+`http://127.0.0.1:8000/docs`
+
+Ejemplo de inferencia:
+
+```bash
+curl --fail --silent --show-error \
+  -X POST http://127.0.0.1:8000/predict \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "salidas_dia": 20.0,
+    "llegadas_dia": 19.0,
+    "balance_relativo": -0.02564102564102564,
+    "share_fin_semana": 0.25,
+    "salida_manana_share": 0.25,
+    "llegada_manana_share": 0.25,
+    "salida_mediodia_share": 0.25,
+    "llegada_mediodia_share": 0.25,
+    "salida_tarde_share": 0.25,
+    "llegada_tarde_share": 0.25,
+    "salida_noche_share": 0.25,
+    "llegada_noche_share": 0.25
+  }'
+```
+
+La respuesta incluye un identificador de clúster y
+la versión del modelo utilizado.
+
+El procedimiento detallado de instalación y operación
+se conserva en las secciones técnicas del README
+y en la documentación de Compose.
+
+### Reproducibilidad y alcance
+
+El proyecto conserva instrucciones para reproducir
+los experimentos originales mediante MLflow Projects,
+las pruebas automatizadas y los análisis de evidencias.
+
+Los CSV originales, Parquet intermedios, base SQLite
+histórica y artefactos locales de experimentación
+se excluyen del control de versiones.
+
+La reproducción completa de los experimentos requiere
+recuperar los datos y preparar los entornos descritos
+en la documentación técnica.
+
+Las evidencias agregadas de monitoreo y FinOps permiten
+inspeccionar los resultados sin repetir el entrenamiento.
+
+Con el entorno Python del proyecto preparado:
+
+```bash
+./.venv/bin/python -m pytest -q
+./.venv/bin/python scripts/verificar_integridad_ci.py
+```
+
+La última consolidación local del monitoreo y Model Cards
+verificó 90 pruebas automatizadas y la integridad de
+los ocho archivos del artefacto de serving P3.
+
+### Limitaciones generales
+
+- P1 estima demanda observada, no inventario físico.
+- P2 utiliza una etiqueta indirecta basada en flujo neto.
+- P3 presenta solapamiento entre grupos y sus etiquetas
+  no representan un orden de riesgo.
+- El catálogo de estaciones no reconstruye capacidades
+  históricas vigentes para cada fecha.
+- La evaluación externa de 2026 corresponde únicamente
+  al champion P1.
+- El monitoreo retrospectivo no equivale a un sistema
+  de observabilidad en tiempo real.
+- Las pruebas de carga locales no garantizan capacidad
+  equivalente en otros entornos.
+- La política de Continuous Training genera recomendaciones;
+  no ejecuta reentrenamientos ni promociones automáticas.
+
+### Fuente de datos
+
+[Datos abiertos de MiBici](https://mibici.net/es/datos-abiertos/).
+
+La documentación técnica original y las instrucciones
+de las actividades anteriores se conservan a continuación.
+
+Los resultados de esas secciones corresponden a sus
+respectivas etapas históricas. Para el estado consolidado
+del proyecto deben consultarse esta guía final,
+las Model Cards y las evidencias de monitoreo final.
+
+<!-- FIN_GUIA_PROYECTO_FINAL -->
+
+---
+
 ## Guía rápida: Construye | Microservicios, CI/CD y FinOps
 
 Esta sección concentra las instrucciones para evaluar
@@ -7,14 +428,13 @@ la arquitectura de microservicios, CI/CD, pruebas de carga
 y análisis FinOps, sin necesidad de repetir el entrenamiento
 de los modelos.
 
-[![MiBici CI-CD](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/GIvanConder/TC5061-Proyecto-MiBici-Gerardo-Ivan-Conde-Reynoso/actions/workflows/ci-cd.yml)
 
 ### Resultados destacados
 
 | Indicador | Resultado |
 |---|---:|
 | Microservicios | 2 |
-| Pruebas de regresión | 69 aprobadas |
+| Pruebas de regresión en esta etapa histórica | 69 aprobadas |
 | Inferencias exitosas | 90,239 |
 | Fallos observados | 0 |
 | Mejora de rendimiento en carga alta | 70.68 % |
