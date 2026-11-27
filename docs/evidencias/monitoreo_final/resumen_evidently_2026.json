@@ -1,0 +1,68 @@
+{
+  "referencia": "2025-01/2025-09",
+  "actual": "2026-01/2026-10",
+  "data_version_historica": "7aa5e436d887",
+  "data_version_evaluacion_2026": "c915fc2638a4",
+  "filas_referencia": 90230,
+  "filas_actual": 122365,
+  "variables_analizadas": 12,
+  "variables_con_drift": 4,
+  "variables_detectadas": [
+    "lag_14",
+    "media_28d",
+    "media_mismo_dia_4sem",
+    "dias_activa"
+  ],
+  "metricas_globales": [
+    {
+      "config": {
+        "type": "evidently:metric_v2:DriftedColumnsCount",
+        "drift_share": 0.5
+      },
+      "valor": {
+        "count": 4.0,
+        "share": 0.3333333333333333
+      }
+    }
+  ],
+  "estados_pruebas": {
+    "SUCCESS": 76,
+    "FAIL": 33
+  },
+  "pruebas_fallidas_por_nombre": {
+    "Value Drift for column lag_14": 1,
+    "Value Drift for column media_28d": 1,
+    "Value Drift for column media_mismo_dia_4sem": 1,
+    "Value Drift for column dias_activa": 1,
+    "Row count in dataset: Equal 90230.000 ± 9023.000": 1,
+    "Duplicated row count in dataset: Equal 0.000 ± 0.000": 1,
+    "Maximum value of 'lag_1': Equal 550.000 ± 55.000": 1,
+    "Maximum value of 'lag_2': Equal 550.000 ± 55.000": 1,
+    "Maximum value of 'lag_7': Equal 550.000 ± 55.000": 1,
+    "Quantile 0.25 of 'lag_7': Equal 11.000 ± 1.100": 1,
+    "Quantile 0.5 of 'lag_7': Equal 23.000 ± 2.300": 1,
+    "Maximum value of 'lag_14': Equal 325.000 ± 32.500": 1,
+    "Quantile 0.25 of 'lag_14': Equal 11.000 ± 1.100": 1,
+    "Quantile 0.5 of 'lag_14': Equal 23.000 ± 2.300": 1,
+    "Quantile 0.75 of 'lag_14': Equal 45.000 ± 4.500": 1,
+    "Maximum value of 'media_7d': Equal 273.857 ± 27.386": 1,
+    "Quantile 0.25 of 'media_7d': Equal 12.286 ± 1.229": 1,
+    "Quantile 0.5 of 'media_7d': Equal 24.000 ± 2.400": 1,
+    "Maximum value of 'media_28d': Equal 263.464 ± 26.346": 1,
+    "Quantile 0.25 of 'media_28d': Equal 12.393 ± 1.239": 1,
+    "Quantile 0.5 of 'media_28d': Equal 23.964 ± 2.396": 1,
+    "Quantile 0.75 of 'media_28d': Equal 44.643 ± 4.464": 1,
+    "Maximum value of 'media_mismo_dia_4sem': Equal 295.250 ± 29.525": 1,
+    "Quantile 0.25 of 'media_mismo_dia_4sem': Equal 11.500 ± 1.150": 1,
+    "Quantile 0.5 of 'media_mismo_dia_4sem': Equal 23.000 ± 2.300": 1,
+    "Quantile 0.75 of 'media_mismo_dia_4sem': Equal 44.750 ± 4.475": 1,
+    "Maximum value of 'dias_activa': Equal 272.000 ± 27.200": 1,
+    "Mean value of 'dias_activa': Equal 149.903 ± 14.990": 1,
+    "Std value of 'dias_activa': Equal 70.726 ± 7.073": 1,
+    "Quantile 0.25 of 'dias_activa': Equal 89.000 ± 8.900": 1,
+    "Quantile 0.5 of 'dias_activa': Equal 150.000 ± 15.000": 1,
+    "Quantile 0.75 of 'dias_activa': Equal 211.000 ± 21.100": 1,
+    "Minimal value of 'capacidad': Equal 11.000 ± 1.100": 1
+  },
+  "nota": "Comparación de periodos con diferente duración y composición temporal. Las alertas automáticas no equivalen al número de variables con drift ni demuestran concept drift."
+}

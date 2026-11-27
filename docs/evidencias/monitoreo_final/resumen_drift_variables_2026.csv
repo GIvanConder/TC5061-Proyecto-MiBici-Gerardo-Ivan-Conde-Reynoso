@@ -1,0 +1,13 @@
+variable,metodo,umbral,valor_drift,drift_detectado
+lag_1,Wasserstein distance (normed),0.1,0.07290128572867119,False
+lag_2,Wasserstein distance (normed),0.1,0.07525872952509988,False
+lag_7,Wasserstein distance (normed),0.1,0.0881096864037461,False
+lag_14,Wasserstein distance (normed),0.1,0.10273403865031125,True
+media_7d,Wasserstein distance (normed),0.1,0.08903414815144041,False
+media_28d,Wasserstein distance (normed),0.1,0.11037644780770553,True
+media_mismo_dia_4sem,Wasserstein distance (normed),0.1,0.10630942545768092,True
+dias_activa,Wasserstein distance (normed),0.1,4.670010701339169,True
+capacidad,Wasserstein distance (normed),0.1,0.04463974603214028,False
+dia_semana,Jensen-Shannon distance,0.1,0.004299619024494004,False
+fin_semana,Jensen-Shannon distance,0.1,0.0002822884680785451,False
+feriado,Jensen-Shannon distance,0.1,0.005727450795428866,False

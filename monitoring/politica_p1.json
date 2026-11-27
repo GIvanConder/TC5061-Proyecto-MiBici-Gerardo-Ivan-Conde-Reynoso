@@ -1,0 +1,39 @@
+{
+  "politica_version": "1.0.0",
+  "fecha_definicion": "2026-11-27",
+  "modelo": "mibici-equipo32-p1-demanda",
+  "version_referencia": 1,
+  "caracter": "umbrales_operativos_iniciales",
+  "validacion_prospectiva": false,
+  "referencia_desempeno": {
+    "periodo": "2025-11/2025-12",
+    "metrica": "MAE",
+    "valor": 5.409785669092729,
+    "unidad": "viajes_por_estacion_dia"
+  },
+  "umbrales": {
+    "incremento_mae_fraccion": 0.15,
+    "meses_consecutivos": 2,
+    "fuera_soporte_fraccion": 0.10,
+    "drift_individual_distancia": 0.10,
+    "drift_global_fraccion": 0.50,
+    "duplicados_clave_maximo": 0,
+    "filas_no_finitas_maximo": 0,
+    "capacidad_no_positiva_alerta": 1
+  },
+  "frecuencia": {
+    "calidad": "cada_ejecucion",
+    "extrapolacion": "semanal",
+    "drift": "semanal_propuesta",
+    "desempeno": "mensual"
+  },
+  "acciones": {
+    "drift": "diagnosticar",
+    "extrapolacion": "revisar_impacto_predictivo",
+    "deterioro_aislado": "investigar",
+    "deterioro_persistente": "solicitar_evaluacion_reentrenamiento",
+    "promocion_automatica": false,
+    "aprobacion_humana": true,
+    "reversion_supervisada": true
+  }
+}

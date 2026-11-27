@@ -1,0 +1,15 @@
+{
+  "fuente": "https://www.mibici.net/es/datos-abiertos/",
+  "meses": {
+    "2026-01": "https://www.mibici.net/site/assets/files/120163/datos_abiertos_2026_01.csv",
+    "2026-02": "https://www.mibici.net/site/assets/files/121761/datos_abiertos_2026_02.csv",
+    "2026-03": "https://www.mibici.net/site/assets/files/123236/datos_abiertos_2026_03.csv",
+    "2026-04": "https://www.mibici.net/site/assets/files/124927/datos_abiertos_2026_04.csv",
+    "2026-05": "https://www.mibici.net/site/assets/files/125943/datos_abiertos_2026_05.csv",
+    "2026-06": "https://www.mibici.net/site/assets/files/127734/datos_abiertos_2026_06.csv",
+    "2026-07": "https://www.mibici.net/site/assets/files/129006/datos_abiertos_2026_07.csv",
+    "2026-08": "https://www.mibici.net/site/assets/files/130362/datos_abiertos_2026_08.csv",
+    "2026-09": "https://www.mibici.net/site/assets/files/131825/datos_abiertos_2026_09.csv",
+    "2026-10": "https://www.mibici.net/site/assets/files/133188/datos_abiertos_2026_10.csv"
+  }
+}
